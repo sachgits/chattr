@@ -13,6 +13,9 @@ class Chattr extends React.Component {
             currentContact: '',
             myNumber: '+14794399408'
         };
+        
+        this.updateCurrentContact = this.updateCurrentContact.bind(this);
+        this.sendChatMessage = this.sendChatMessage.bind(this);
     }
     
     updateCurrentContact(newContact) {
@@ -23,8 +26,8 @@ class Chattr extends React.Component {
     
     sendChatMessage(body) {
         if(this.state.currentContact !== '') {
-            ajax('/sendMessage', { 
-                to: this.state.currentContact, 
+            ajax.post('/sendMessage/', {
+                to: this.state.currentContact,
                 from: this.state.myNumber,
                 msgBody: body
             });

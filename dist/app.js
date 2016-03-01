@@ -20195,6 +20195,9 @@
 	            currentContact: '',
 	            myNumber: '+14794399408'
 	        };
+	
+	        _this.updateCurrentContact = _this.updateCurrentContact.bind(_this);
+	        _this.sendChatMessage = _this.sendChatMessage.bind(_this);
 	        return _this;
 	    }
 	
@@ -20209,7 +20212,7 @@
 	        key: 'sendChatMessage',
 	        value: function sendChatMessage(body) {
 	            if (this.state.currentContact !== '') {
-	                (0, _ajax.ajax)('/sendMessage', {
+	                _ajax.ajax.post('/sendMessage/', {
 	                    to: this.state.currentContact,
 	                    from: this.state.myNumber,
 	                    msgBody: body
@@ -20351,13 +20354,17 @@
 	    }
 	
 	    _createClass(ContactInput, [{
-	        key: 'handleKeyPress',
-	        value: function handleKeyPress(e) {
-	            console.log('key press');
-	            if (e.keyCodes === _keyCodes.KEY_ENTER) {
+	        key: 'handleKeyUp',
+	        value: function handleKeyUp(e) {
+	            if (e.keyCode === _keyCodes.KEY_ENTER) {
 	                this.props.handleContactInput(this.input.value);
 	                this.input.value = '';
 	            }
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.input.addEventListener('keyup', this.handleKeyUp.bind(this));
 	        }
 	    }, {
 	        key: 'render',
@@ -20377,7 +20384,6 @@
 	                    ref: function ref(c) {
 	                        return _this2.input = c;
 	                    },
-	                    onKeyPress: this.handleKeyPress,
 	                    style: styles.inlineObject })
 	            );
 	        }
@@ -20574,26 +20580,48 @@
   \***************************/
 /***/ function(module, exports) {
 
-	'use strict';
+	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	var ajax = exports.ajax = function ajax(requestProps) {
-	    var xhr = new XMLHttpRequest();
-	    var fullUrl = addParamsToUrl(requestProps.url, requestProps.data);
-	    requestProps.type = requestProps.type || 'GET';
-	    xhr.responseType = requestProps.responseType || xhr.responseType;
+	var ajax = exports.ajax = {
+	    get: function get(url, requestProps) {
+	        var xhr = new XMLHttpRequest();
+	        var fullUrl = addParamsToUrl(url, requestProps.data);
+	        requestProps.type = requestProps.type || 'GET';
+	        xhr.responseType = requestProps.responseType || xhr.responseType;
 	
-	    xhr.open(requestProps.type, encodeURI(fullUrl));
-	    xhr.onload = function () {
-	        if (xhr.status === 200) {
-	            requestProps.success.call(undefined, xhr.response);
-	        } else {
-	            requestProps.failure.call(undefined, xhr.status, xhr.statusText);
+	        xhr.open(requestProps.type, encodeURI(fullUrl));
+	        xhr.onload = function () {
+	            if (xhr.status === 200) {
+	                requestProps.success.call(undefined, xhr.response);
+	            } else {
+	                requestProps.failure.call(undefined, xhr.status, xhr.statusText);
+	            }
+	        };
+	        xhr.send();
+	    },
+	    post: function post(path, params, method) {
+	        method = method || "post";
+	        var form = document.createElement("form");
+	        form.setAttribute("method", method);
+	        form.setAttribute("action", path);
+	
+	        for (var key in params) {
+	            if (params.hasOwnProperty(key)) {
+	                var hiddenField = document.createElement("input");
+	                hiddenField.setAttribute("type", "hidden");
+	                hiddenField.setAttribute("name", key);
+	                hiddenField.setAttribute("value", params[key]);
+	
+	                form.appendChild(hiddenField);
+	            }
 	        }
-	    };
-	    xhr.send();
+	
+	        document.body.appendChild(form);
+	        form.submit();
+	    }
 	};
 	
 	var addParamsToUrl = function addParamsToUrl(url, data) {
@@ -20608,4 +20636,5 @@
 
 /***/ }
 /******/ ]);
+//# sourceMappingURL=app.js.map
 //# sourceMappingURL=app.js.map

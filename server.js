@@ -9,7 +9,7 @@ var client = require('twilio')(accountSid, authToken);
 
 require('./server/config/express')(app);
 
-require('./server/config/routes')(app);
+require('./server/config/routes')(app, client);
 
 app.listen(port, function() {
     console.log('Server up and running at: ' + port);   

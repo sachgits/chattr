@@ -3,12 +3,15 @@ import { KEY_ENTER } from '../constants/keyCodes.js';
 
 class ContactInput extends React.Component {
     
-    handleKeyPress(e) {
-        console.log('key press');
-        if(e.keyCodes === KEY_ENTER) {
+    handleKeyUp(e) {
+        if(e.keyCode === KEY_ENTER) {
             this.props.handleContactInput(this.input.value);
             this.input.value = '';
         }            
+    }
+    
+    componentDidMount() {
+        this.input.addEventListener('keyup', this.handleKeyUp.bind(this));
     }
     
     render() {
@@ -18,7 +21,6 @@ class ContactInput extends React.Component {
                 <input type="text"
                     id="contactInput"
                     ref={(c) => this.input = c}
-                    onKeyPress={this.handleKeyPress}
                     style={styles.inlineObject} />
             </div>
         );
