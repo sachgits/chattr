@@ -20145,7 +20145,7 @@
   \*******************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
@@ -20155,40 +20155,456 @@
 	
 	var _react = __webpack_require__(/*! react */ 1);
 	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _header = __webpack_require__(/*! ./header.jsx */ 160);
+	
+	var _header2 = _interopRequireDefault(_header);
+	
+	var _contactInput = __webpack_require__(/*! ./contactInput.jsx */ 161);
+	
+	var _contactInput2 = _interopRequireDefault(_contactInput);
+	
+	var _chatStream = __webpack_require__(/*! ./chatStream.jsx */ 163);
+	
+	var _chatStream2 = _interopRequireDefault(_chatStream);
+	
+	var _chatInput = __webpack_require__(/*! ./chatInput.jsx */ 164);
+	
+	var _chatInput2 = _interopRequireDefault(_chatInput);
+	
+	var _ajax = __webpack_require__(/*! ../utilities/ajax.js */ 165);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var Chattr = function (_Component) {
-	    _inherits(Chattr, _Component);
+	var Chattr = function (_React$Component) {
+	    _inherits(Chattr, _React$Component);
 	
-	    function Chattr() {
+	    function Chattr(props) {
 	        _classCallCheck(this, Chattr);
 	
-	        return _possibleConstructorReturn(this, Object.getPrototypeOf(Chattr).apply(this, arguments));
+	        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Chattr).call(this, props));
+	
+	        _this.state = {
+	            currentContact: '',
+	            myNumber: '+14794399408'
+	        };
+	        return _this;
 	    }
 	
 	    _createClass(Chattr, [{
-	        key: "render",
+	        key: 'updateCurrentContact',
+	        value: function updateCurrentContact(newContact) {
+	            this.setState({
+	                currentContact: newContact
+	            });
+	        }
+	    }, {
+	        key: 'sendChatMessage',
+	        value: function sendChatMessage(body) {
+	            if (this.state.currentContact !== '') {
+	                (0, _ajax.ajax)('/sendMessage', {
+	                    to: this.state.currentContact,
+	                    from: this.state.myNumber,
+	                    msgBody: body
+	                });
+	            }
+	        }
+	    }, {
+	        key: 'render',
 	        value: function render() {
-	            return React.createElement(
-	                "div",
-	                { className: "mdl-layout mdl-js-layout mdl-layout--fixed-header" },
-	                React.createElement(
-	                    "main",
-	                    { className: "mdl-layout__content" },
-	                    React.createElement("div", { className: "page-content" })
+	            return _react2.default.createElement(
+	                'div',
+	                { className: 'mdl-layout mdl-js-layout mdl-layout--fixed-header' },
+	                _react2.default.createElement(_header2.default, null),
+	                _react2.default.createElement(
+	                    'main',
+	                    { className: 'mdl-layout__content' },
+	                    _react2.default.createElement(
+	                        'div',
+	                        { className: 'page-content', style: styles.pageContent },
+	                        _react2.default.createElement(_contactInput2.default, { handleContactInput: this.updateCurrentContact }),
+	                        _react2.default.createElement(_chatStream2.default, null),
+	                        _react2.default.createElement(_chatInput2.default, { sendChatMessage: this.sendChatMessage })
+	                    )
 	                )
 	            );
 	        }
 	    }]);
 	
 	    return Chattr;
-	}(_react.Component);
+	}(_react2.default.Component);
+	
+	var styles = {
+	    pageContent: {
+	        margin: '0 auto',
+	        textAlign: 'center'
+	    }
+	};
 	
 	exports.default = Chattr;
+
+/***/ },
+/* 160 */
+/*!*******************************!*\
+  !*** ./components/header.jsx ***!
+  \*******************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var Header = function Header() {
+	  return _react2.default.createElement(
+	    "header",
+	    { className: "mdl-layout__header" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "mdl-layout__header-row" },
+	      _react2.default.createElement(
+	        "span",
+	        { className: "mdl-layout-title" },
+	        "Chattr"
+	      ),
+	      _react2.default.createElement("div", { className: "mdl-layout-spacer" }),
+	      _react2.default.createElement(
+	        "nav",
+	        { className: "mdl-navigation mdl-layout--large-screen-only" },
+	        _react2.default.createElement(
+	          "a",
+	          { className: "mdl-navigation__link", href: "#" },
+	          "Link"
+	        ),
+	        _react2.default.createElement(
+	          "a",
+	          { className: "mdl-navigation__link", href: "#" },
+	          "Link"
+	        ),
+	        _react2.default.createElement(
+	          "a",
+	          { className: "mdl-navigation__link", href: "#" },
+	          "Link"
+	        ),
+	        _react2.default.createElement(
+	          "a",
+	          { className: "mdl-navigation__link", href: "#" },
+	          "Link"
+	        )
+	      )
+	    )
+	  );
+	};
+	
+	exports.default = Header;
+
+/***/ },
+/* 161 */
+/*!*************************************!*\
+  !*** ./components/contactInput.jsx ***!
+  \*************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _keyCodes = __webpack_require__(/*! ../constants/keyCodes.js */ 162);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ContactInput = function (_React$Component) {
+	    _inherits(ContactInput, _React$Component);
+	
+	    function ContactInput() {
+	        _classCallCheck(this, ContactInput);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(ContactInput).apply(this, arguments));
+	    }
+	
+	    _createClass(ContactInput, [{
+	        key: 'handleKeyPress',
+	        value: function handleKeyPress(e) {
+	            console.log('key press');
+	            if (e.keyCodes === _keyCodes.KEY_ENTER) {
+	                this.props.handleContactInput(this.input.value);
+	                this.input.value = '';
+	            }
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'div',
+	                null,
+	                _react2.default.createElement(
+	                    'h5',
+	                    { style: styles.inlineObject },
+	                    'Input Contact'
+	                ),
+	                _react2.default.createElement('input', { type: 'text',
+	                    id: 'contactInput',
+	                    ref: function ref(c) {
+	                        return _this2.input = c;
+	                    },
+	                    onKeyPress: this.handleKeyPress,
+	                    style: styles.inlineObject })
+	            );
+	        }
+	    }]);
+	
+	    return ContactInput;
+	}(_react2.default.Component);
+	
+	var styles = {
+	    inlineObject: {
+	        display: 'inline-block',
+	        marinLeft: 10,
+	        marginRight: 10
+	    }
+	};
+	
+	exports.default = ContactInput;
+
+/***/ },
+/* 162 */
+/*!*******************************!*\
+  !*** ./constants/keyCodes.js ***!
+  \*******************************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var KEY_ENTER = exports.KEY_ENTER = 13;
+
+/***/ },
+/* 163 */
+/*!***********************************!*\
+  !*** ./components/chatStream.jsx ***!
+  \***********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ChatStream = function (_React$Component) {
+	    _inherits(ChatStream, _React$Component);
+	
+	    function ChatStream() {
+	        _classCallCheck(this, ChatStream);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(ChatStream).apply(this, arguments));
+	    }
+	
+	    _createClass(ChatStream, [{
+	        key: 'render',
+	        value: function render() {
+	            return _react2.default.createElement('div', { style: styles.chatStream });
+	        }
+	    }]);
+	
+	    return ChatStream;
+	}(_react2.default.Component);
+	
+	var styles = {
+	    chatStream: {
+	        height: 500,
+	        width: 400,
+	        border: '2px solid #F44336',
+	        margin: '0 auto'
+	    }
+	};
+	
+	exports.default = ChatStream;
+
+/***/ },
+/* 164 */
+/*!**********************************!*\
+  !*** ./components/chatInput.jsx ***!
+  \**********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ChatInput = function (_React$Component) {
+	    _inherits(ChatInput, _React$Component);
+	
+	    function ChatInput() {
+	        _classCallCheck(this, ChatInput);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(ChatInput).apply(this, arguments));
+	    }
+	
+	    _createClass(ChatInput, [{
+	        key: 'handleChatInput',
+	        value: function handleChatInput() {
+	            var chatBody = this.input.value;
+	            this.props.sendChatMessage(chatBody);
+	            this.input.value = '';
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.sendBtn.addEventListener('click', this.handleChatInput.bind(this));
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'div',
+	                { style: styles.chatBox },
+	                _react2.default.createElement('textarea', { id: 'chatInput',
+	                    ref: function ref(c) {
+	                        return _this2.input = c;
+	                    },
+	                    style: styles.input }),
+	                _react2.default.createElement(
+	                    'button',
+	                    { className: 'mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored',
+	                        style: styles.button,
+	                        ref: function ref(c) {
+	                            return _this2.sendBtn = c;
+	                        } },
+	                    _react2.default.createElement(
+	                        'i',
+	                        { className: 'material-icons' },
+	                        'send'
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return ChatInput;
+	}(_react2.default.Component);
+	
+	var styles = {
+	    chatBox: {
+	        height: 75,
+	        width: 400,
+	        margin: '0 auto'
+	    },
+	    input: {
+	        height: '95%',
+	        width: '80%',
+	        float: 'left'
+	    },
+	    button: {
+	        position: 'relative',
+	        top: 10
+	    }
+	};
+	
+	exports.default = ChatInput;
+
+/***/ },
+/* 165 */
+/*!***************************!*\
+  !*** ./utilities/ajax.js ***!
+  \***************************/
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	var ajax = exports.ajax = function ajax(requestProps) {
+	    var xhr = new XMLHttpRequest();
+	    var fullUrl = addParamsToUrl(requestProps.url, requestProps.data);
+	    requestProps.type = requestProps.type || 'GET';
+	    xhr.responseType = requestProps.responseType || xhr.responseType;
+	
+	    xhr.open(requestProps.type, encodeURI(fullUrl));
+	    xhr.onload = function () {
+	        if (xhr.status === 200) {
+	            requestProps.success.call(undefined, xhr.response);
+	        } else {
+	            requestProps.failure.call(undefined, xhr.status, xhr.statusText);
+	        }
+	    };
+	    xhr.send();
+	};
+	
+	var addParamsToUrl = function addParamsToUrl(url, data) {
+	    var fullUrl = url + '?';
+	    for (var param in data) {
+	        if (data.hasOwnProperty(param)) {
+	            fullUrl = fullUrl + '&' + param + '=' + data[param];
+	        }
+	    }
+	    return fullUrl;
+	};
 
 /***/ }
 /******/ ]);
