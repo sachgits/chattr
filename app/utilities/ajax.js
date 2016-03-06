@@ -33,7 +33,9 @@ export const ajax = {
         }
     
         document.body.appendChild(form);
-        form.submit();
+        form.submit((e) => {
+            e.preventDefault();
+        });
     }
 };
 

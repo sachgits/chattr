@@ -6,10 +6,9 @@ const Header = () => (
           <span className="mdl-layout-title">Chattr</span>
           <div className="mdl-layout-spacer"></div>
           <nav className="mdl-navigation mdl-layout--large-screen-only">
-            <a className="mdl-navigation__link" href="#">Link</a>
-            <a className="mdl-navigation__link" href="#">Link</a>
-            <a className="mdl-navigation__link" href="#">Link</a>
-            <a className="mdl-navigation__link" href="#">Link</a>
+            <a className="mdl-navigation__link" href="#">Create Template</a>
+            <a className="mdl-navigation__link" href="#">Filters</a>
+            <a className="mdl-navigation__link" href="#">Automated Messages</a>
           </nav>
         </div>
     </header>

@@ -1,0 +1,1 @@
+export const SAVED_CONTACTS = 'SAVED_CONTACTS';

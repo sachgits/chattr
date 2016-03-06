@@ -1,4 +1,5 @@
 var express = require('express'),
+    twilio = require('twilio'),
     messageService = require('../services/messageService');
 
 module.exports = function(app, client) {
@@ -9,6 +10,16 @@ module.exports = function(app, client) {
         
         messageService(client, to, from, msg);    
         
-        res.end('Message Sent!');
+        res.end();
+    });
+    
+    app.post('/incoming', function (req, res) {
+      var resp = new twilio.TwimlResponse();
+          resp.message('Thanks for subscribing!');
+          res.writeHead(200, {
+            'Content-Type':'text/xml'
+          });
+          console.log(req, res);
+          res.end();
     });
 };
