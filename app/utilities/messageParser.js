@@ -16,8 +16,6 @@ export const checkFilterViolation = (message, contact) => {
     const contactFilters = getFiltersByContact(contact);
     let filterViolation = false;
     
-    //console.log(contactFilters);
-    
     for(let i = 0; i < contactFilters.length; i++) {
         if(message.indexOf(contactFilters[i]) > -1) {
             filterViolation = true;

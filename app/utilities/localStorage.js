@@ -61,9 +61,7 @@ export const getFiltersByContact = (contact) => {
     const filters = getFilters();
     let contactFilters = [];
     filters.forEach((filter) => {
-        console.log(filter);
        if(filter.contact === contact.name) {
-           console.log(filter.filterWords);
             contactFilters = filter.filterWords;        
        } 
     });

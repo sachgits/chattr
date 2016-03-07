@@ -2,15 +2,16 @@ var express = require('express'),
     app = express(),
     port = process.env.PORT || 8888;
 
-var accountSid = 'ACbc279467413881d066feb09a9337a17c'; 
-var authToken = 'e2d435532e2bc062c87cc1a66485259c'; 
+var accountSid = 'AC3bff0bf86894c756f2eb529c3898b962'; 
+var authToken = 'd21bc263b230b0cfe44f844c03c80acf'; 
  
 var client = require('twilio')(accountSid, authToken); 
 
 require('./server/config/express')(app);
 
-require('./server/config/routes')(app, client);
-
-app.listen(port, function() {
+var server = app.listen(port, function() {
     console.log('Server up and running at: ' + port);   
 });
+
+var io = require('./server/config/sockets')(server);
+require('./server/config/routes')(app, client, io);

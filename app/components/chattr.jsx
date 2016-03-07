@@ -14,7 +14,7 @@ import { getContacts,
          saveNewFilter,
          clearLocalStorage 
 } from '../utilities/localStorage.js';
-const testPhone = '+15005550006';
+const testPhone = '+14794399408';
 
 class Chattr extends React.Component {
     constructor(props) {
@@ -23,8 +23,8 @@ class Chattr extends React.Component {
         this.state = {
             contactList: getContacts(),
             currentContact: {
-                name: 'no contact',
-                phoneNumber: '1234'
+                name: 'Select a contact',
+                phoneNumber: '18000000000'
             },
             myNumber: testPhone,
             createTemplateOpen: false,

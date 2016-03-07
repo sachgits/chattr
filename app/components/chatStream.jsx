@@ -1,6 +1,26 @@
 import React from 'react';
+import io from 'socket.io-client';
 
 class ChatStream extends React.Component {
+    constructor(props) {
+        super(props);
+        
+        this.state = {
+            socket: null    
+        };
+    }
+    
+    
+    componentDidMount() {
+        const socket = io();
+        
+        socket.on('messageReceived', (message) => {
+           console.log(message); 
+        });
+        
+        this.setState({ socket });
+    }
+    
     render() {
         return (
             <div style={styles.chatStream}>

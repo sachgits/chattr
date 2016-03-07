@@ -36,16 +36,14 @@ class ChatInput extends React.Component {
         const parsedInput = replaceWithTemplates(chatBody);
         const filterViolation = checkFilterViolation(chatBody, this.props.currentContact);
         
-        console.log(this.props.currentContact, chatBody);
-        
         if(filterViolation) {
             if(window.confirm("This message violates message filters create for this contact, are you sure you want to send it?")) {
-                // this.props.sendChatMessage(parsedInput);
-                // this.input.value = '';     
+                this.props.sendChatMessage(parsedInput);
+                this.input.value = '';  
             } 
         } else {
-            // this.props.sendChatMessage(parsedInput);
-            // this.input.value = '';
+            this.props.sendChatMessage(parsedInput);
+            this.input.value = '';
         }
     }
     
