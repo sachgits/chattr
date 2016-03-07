@@ -5,6 +5,7 @@ class Header extends Component {
     componentDidMount() {
         this.createTemplate.addEventListener('click', this.props.toggleCreateTemplateModal);
         this.createFilter.addEventListener('click', this.props.toggleCreateFilterModal);
+        this.createAutoMessage.addEventListener('click', this.props.toggleCreateAutoMessageModal);
     }
     
     render() {
@@ -20,7 +21,9 @@ class Header extends Component {
                     <a className="mdl-navigation__link" 
                         href="#"
                         ref={c => this.createFilter = c}>Filters</a>
-                    <a className="mdl-navigation__link" href="#">Automated Messages</a>
+                    <a className="mdl-navigation__link" 
+                        href="#"
+                        ref={c => this.createAutoMessage = c}>Automated Messages</a>
                   </nav>
                 </div>
             </header>        
@@ -30,7 +33,8 @@ class Header extends Component {
 
 Header.propTypes = {
     toggleCreateTemplateModal: PropTypes.func.isRequired,
-    toggleCreateFilterModal: PropTypes.func.isRequired
+    toggleCreateFilterModal: PropTypes.func.isRequired,
+    toggleCreateAutoMessageModal: PropTypes.func.isRequired
 };
 
 export default Header;

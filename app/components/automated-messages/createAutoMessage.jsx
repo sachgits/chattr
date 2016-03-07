@@ -7,18 +7,17 @@ class CreateAutomatedMessages extends Component {
     }
     
     handleCreate(e) {
-        let keyInput = this.templateKeyInput.value;
-        const templateInput = this.templateInput.value;
+        const contactInput = this.contactInput.value;
+        const messageInput = this.messageInput.value;
         
-        if(keyInput !== '' && templateInput !== '') {
-            keyInput = ":" + keyInput;
-            this.props.handleSaveNewTemplate({ key: keyInput, value: templateInput });
+        if(contactInput !== '' && messageInput !== '') {
+            this.props.handleSaveNewAutoMessage({ contact: contactInput, message: messageInput });
             this.props.toggleCreateAutoMessageModal();
         }
     }
     
     handleCancel(e) {
-        this.props.toggleCreateTemplateModal();
+        this.props.toggleCreateAutoMessageModal();
     }
     
     componentDidMount() {
@@ -40,10 +39,12 @@ class CreateAutomatedMessages extends Component {
                     ref={c => this.dialog = c}>
                 <h4 className="mdl-dialog__title">Add New Message Template</h4>
                 <div className="mdl-dialog__content">
+                    <label>When</label>                    
                   <input type="text"
-                        ref={c => this.templateKeyInput = c} />
+                        ref={c => this.contactInput = c} />
+                    <label>Send</label>
                   <input type="text"
-                        ref={c => this.templateInput = c} />
+                        ref={c => this.messageInput = c} />
                 </div>
                 <div className="mdl-dialog__actions">
                   <button type="button" 

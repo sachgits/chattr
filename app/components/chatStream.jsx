@@ -1,34 +1,23 @@
-import React from 'react';
-import io from 'socket.io-client';
+import React, { PropTypes } from 'react';
+
+import ChatMessage from './chatMessage.jsx';
 
 class ChatStream extends React.Component {
-    constructor(props) {
-        super(props);
-        
-        this.state = {
-            socket: null    
-        };
-    }
-    
-    
-    componentDidMount() {
-        const socket = io();
-        
-        socket.on('messageReceived', (message) => {
-           console.log(message); 
-        });
-        
-        this.setState({ socket });
-    }
-    
     render() {
+        const chatMessages = this.props.messages.map((message, index) => {
+            return (<ChatMessage message={message} key={index} />);  
+        });
         return (
             <div style={styles.chatStream}>
-            
+                {chatMessages}
             </div>    
         );
     }
 }
+
+ChatStream.propTypes = {
+    messages: PropTypes.array.isRequired    
+};
 
 const styles = {
     chatStream: {

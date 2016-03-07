@@ -1,8 +1,11 @@
 import React from 'react';
 
-const CharMessage = ({ dateStamp, body }) => (
+const ChatMessage = ({
+    message
+}) => (
     <div>
-        <div>{body}</div>
-        <div>{dateStamp}</div>
-    </div> 
+        {message}
+    </div>
 );
+
+export default ChatMessage;

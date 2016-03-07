@@ -20157,41 +20157,49 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _header = __webpack_require__(/*! ./header.jsx */ 160);
+	var _socket = __webpack_require__(/*! socket.io-client */ 160);
+	
+	var _socket2 = _interopRequireDefault(_socket);
+	
+	var _header = __webpack_require__(/*! ./header.jsx */ 210);
 	
 	var _header2 = _interopRequireDefault(_header);
 	
-	var _createTemplate = __webpack_require__(/*! ./templates/createTemplate.jsx */ 161);
+	var _createTemplate = __webpack_require__(/*! ./templates/createTemplate.jsx */ 211);
 	
 	var _createTemplate2 = _interopRequireDefault(_createTemplate);
 	
-	var _createFilter = __webpack_require__(/*! ./filters/createFilter.jsx */ 162);
+	var _createFilter = __webpack_require__(/*! ./filters/createFilter.jsx */ 212);
 	
 	var _createFilter2 = _interopRequireDefault(_createFilter);
 	
-	var _contactInput = __webpack_require__(/*! ./contactInput.jsx */ 163);
+	var _createAutoMessage = __webpack_require__(/*! ./automated-messages/createAutoMessage.jsx */ 228);
+	
+	var _createAutoMessage2 = _interopRequireDefault(_createAutoMessage);
+	
+	var _contactInput = __webpack_require__(/*! ./contactInput.jsx */ 213);
 	
 	var _contactInput2 = _interopRequireDefault(_contactInput);
 	
-	var _chatStream = __webpack_require__(/*! ./chatStream.jsx */ 165);
+	var _chatStream = __webpack_require__(/*! ./chatStream.jsx */ 215);
 	
 	var _chatStream2 = _interopRequireDefault(_chatStream);
 	
-	var _chatInput = __webpack_require__(/*! ./chatInput.jsx */ 216);
+	var _chatInput = __webpack_require__(/*! ./chatInput.jsx */ 217);
 	
 	var _chatInput2 = _interopRequireDefault(_chatInput);
 	
-	var _contactManager = __webpack_require__(/*! ./contacts/contactManager.jsx */ 221);
+	var _contactManager = __webpack_require__(/*! ./contacts/contactManager.jsx */ 222);
 	
 	var _contactManager2 = _interopRequireDefault(_contactManager);
 	
-	var _currentContactDisplay = __webpack_require__(/*! ./currentContactDisplay.jsx */ 225);
+	var _currentContactDisplay = __webpack_require__(/*! ./currentContactDisplay.jsx */ 226);
 	
 	var _currentContactDisplay2 = _interopRequireDefault(_currentContactDisplay);
 	
-	var _ajax = __webpack_require__(/*! ../utilities/ajax.js */ 226);
+	var _ajax = __webpack_require__(/*! ../utilities/ajax.js */ 227);
 	
-	var _localStorage = __webpack_require__(/*! ../utilities/localStorage.js */ 219);
+	var _localStorage = __webpack_require__(/*! ../utilities/localStorage.js */ 220);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -20212,20 +20220,24 @@
 	        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Chattr).call(this, props));
 	
 	        _this.state = {
+	            socket: null,
 	            contactList: (0, _localStorage.getContacts)(),
 	            currentContact: {
 	                name: 'Select a contact',
 	                phoneNumber: '18000000000'
 	            },
+	            currentContactsPastMessages: [],
 	            myNumber: testPhone,
 	            createTemplateOpen: false,
-	            createFilterOpen: false
+	            createFilterOpen: false,
+	            createAutoMessageOpen: false
 	        };
 	
 	        _this.updateCurrentContact = _this.updateCurrentContact.bind(_this);
 	        _this.sendChatMessage = _this.sendChatMessage.bind(_this);
 	        _this.toggleCreateTemplateModal = _this.toggleCreateTemplateModal.bind(_this);
 	        _this.toggleCreateFilterModal = _this.toggleCreateFilterModal.bind(_this);
+	        _this.toggleCreateAutoMessageModal = _this.toggleCreateAutoMessageModal.bind(_this);
 	        return _this;
 	    }
 	
@@ -20233,7 +20245,8 @@
 	        key: 'updateCurrentContact',
 	        value: function updateCurrentContact(newContact) {
 	            this.setState({
-	                currentContact: newContact
+	                currentContact: newContact,
+	                currentContactsPastMessages: (0, _localStorage.getPastMessagesFromContact)(newContact)
 	            });
 	        }
 	    }, {
@@ -20245,6 +20258,8 @@
 	                    from: this.state.myNumber,
 	                    msgBody: body
 	                });
+	                (0, _localStorage.saveMessageForContact)({ phoneNumber: message.from }, body);
+	                this.setState({ currentContactsPastMessages: (0, _localStorage.getPastMessagesFromContact)(this.state.currentContact) });
 	            }
 	        }
 	    }, {
@@ -20263,6 +20278,15 @@
 	                this.setState({ createFilterOpen: false });
 	            } else {
 	                this.setState({ createFilterOpen: true });
+	            }
+	        }
+	    }, {
+	        key: 'toggleCreateAutoMessageModal',
+	        value: function toggleCreateAutoMessageModal() {
+	            if (this.state.createAutoMessageOpen) {
+	                this.setState({ createAutoMessageOpen: false });
+	            } else {
+	                this.setState({ createAutoMessageOpen: true });
 	            }
 	        }
 	    }, {
@@ -20286,13 +20310,41 @@
 	            (0, _localStorage.saveNewFilter)(newFilter);
 	        }
 	    }, {
+	        key: 'handleSaveNewAutoMessage',
+	        value: function handleSaveNewAutoMessage(_ref2) {
+	            var contact = _ref2.contact;
+	            var message = _ref2.message;
+	
+	            (0, _localStorage.saveAutoMessageForContact)({ contact: contact, message: message });
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            var _this2 = this;
+	
+	            var socket = (0, _socket2.default)();
+	
+	            socket.on('messageReceived', function (message) {
+	                (0, _localStorage.saveMessageForContact)({ phoneNumber: message.from }, message.body);
+	                _this2.setState({ currentContactsPastMessages: (0, _localStorage.getPastMessagesFromContact)(_this2.state.currentContact) });
+	            });
+	
+	            this.setState({ socket: socket });
+	        }
+	    }, {
+	        key: 'componentWillMount',
+	        value: function componentWillMount() {
+	            //clearLocalStorage();
+	        }
+	    }, {
 	        key: 'render',
 	        value: function render() {
 	            return _react2.default.createElement(
 	                'div',
 	                { className: 'mdl-layout mdl-js-layout mdl-layout--fixed-header' },
 	                _react2.default.createElement(_header2.default, { toggleCreateTemplateModal: this.toggleCreateTemplateModal,
-	                    toggleCreateFilterModal: this.toggleCreateFilterModal }),
+	                    toggleCreateFilterModal: this.toggleCreateFilterModal,
+	                    toggleCreateAutoMessageModal: this.toggleCreateAutoMessageModal }),
 	                _react2.default.createElement(
 	                    'main',
 	                    { className: 'mdl-layout__content' },
@@ -20304,7 +20356,7 @@
 	                        _react2.default.createElement(_contactManager2.default, { contactList: this.state.contactList,
 	                            addContact: this.handleSaveNewContact.bind(this),
 	                            updateCurrentContact: this.updateCurrentContact }),
-	                        _react2.default.createElement(_chatStream2.default, null),
+	                        _react2.default.createElement(_chatStream2.default, { messages: this.state.currentContactsPastMessages }),
 	                        _react2.default.createElement(_chatInput2.default, { sendChatMessage: this.sendChatMessage,
 	                            currentContact: this.state.currentContact }),
 	                        _react2.default.createElement(_createTemplate2.default, { isOpen: this.state.createTemplateOpen,
@@ -20312,7 +20364,10 @@
 	                            handleSaveNewTemplate: this.handleSaveNewTemplate }),
 	                        _react2.default.createElement(_createFilter2.default, { isOpen: this.state.createFilterOpen,
 	                            toggleCreateFilterModal: this.toggleCreateFilterModal,
-	                            handleSaveNewFilter: this.handleSaveNewFilter })
+	                            handleSaveNewFilter: this.handleSaveNewFilter }),
+	                        _react2.default.createElement(_createAutoMessage2.default, { isOpen: this.state.createAutoMessageOpen,
+	                            toggleCreateAutoMessageModal: this.toggleCreateAutoMessageModal,
+	                            handleSaveNewAutoMessage: this.handleSaveNewAutoMessage })
 	                    )
 	                )
 	            );
@@ -20333,561 +20388,6 @@
 
 /***/ },
 /* 160 */
-/*!*******************************!*\
-  !*** ./components/header.jsx ***!
-  \*******************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(/*! react */ 1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var Header = function (_Component) {
-	    _inherits(Header, _Component);
-	
-	    function Header() {
-	        _classCallCheck(this, Header);
-	
-	        return _possibleConstructorReturn(this, Object.getPrototypeOf(Header).apply(this, arguments));
-	    }
-	
-	    _createClass(Header, [{
-	        key: 'componentDidMount',
-	        value: function componentDidMount() {
-	            this.createTemplate.addEventListener('click', this.props.toggleCreateTemplateModal);
-	            this.createFilter.addEventListener('click', this.props.toggleCreateFilterModal);
-	        }
-	    }, {
-	        key: 'render',
-	        value: function render() {
-	            var _this2 = this;
-	
-	            return _react2.default.createElement(
-	                'header',
-	                { className: 'mdl-layout__header' },
-	                _react2.default.createElement(
-	                    'div',
-	                    { className: 'mdl-layout__header-row' },
-	                    _react2.default.createElement(
-	                        'span',
-	                        { className: 'mdl-layout-title' },
-	                        'Chattr'
-	                    ),
-	                    _react2.default.createElement('div', { className: 'mdl-layout-spacer' }),
-	                    _react2.default.createElement(
-	                        'nav',
-	                        { className: 'mdl-navigation mdl-layout--large-screen-only' },
-	                        _react2.default.createElement(
-	                            'a',
-	                            { className: 'mdl-navigation__link',
-	                                ref: function ref(c) {
-	                                    return _this2.createTemplate = c;
-	                                },
-	                                href: '#' },
-	                            'Create Template'
-	                        ),
-	                        _react2.default.createElement(
-	                            'a',
-	                            { className: 'mdl-navigation__link',
-	                                href: '#',
-	                                ref: function ref(c) {
-	                                    return _this2.createFilter = c;
-	                                } },
-	                            'Filters'
-	                        ),
-	                        _react2.default.createElement(
-	                            'a',
-	                            { className: 'mdl-navigation__link', href: '#' },
-	                            'Automated Messages'
-	                        )
-	                    )
-	                )
-	            );
-	        }
-	    }]);
-	
-	    return Header;
-	}(_react.Component);
-	
-	Header.propTypes = {
-	    toggleCreateTemplateModal: _react.PropTypes.func.isRequired,
-	    toggleCreateFilterModal: _react.PropTypes.func.isRequired
-	};
-	
-	exports.default = Header;
-
-/***/ },
-/* 161 */
-/*!*************************************************!*\
-  !*** ./components/templates/createTemplate.jsx ***!
-  \*************************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(/*! react */ 1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var CreateTemplate = function (_Component) {
-	    _inherits(CreateTemplate, _Component);
-	
-	    function CreateTemplate() {
-	        _classCallCheck(this, CreateTemplate);
-	
-	        return _possibleConstructorReturn(this, Object.getPrototypeOf(CreateTemplate).apply(this, arguments));
-	    }
-	
-	    _createClass(CreateTemplate, [{
-	        key: 'shouldComponentUpdate',
-	        value: function shouldComponentUpdate(nextProps, nextState) {
-	            return nextProps.isOpen !== this.props.isOpen;
-	        }
-	    }, {
-	        key: 'handleCreate',
-	        value: function handleCreate(e) {
-	            var keyInput = this.templateKeyInput.value;
-	            var templateInput = this.templateInput.value;
-	
-	            if (keyInput !== '' && templateInput !== '') {
-	                keyInput = ":" + keyInput;
-	                this.props.handleSaveNewTemplate({ key: keyInput, value: templateInput });
-	                this.props.toggleCreateTemplateModal();
-	            }
-	        }
-	    }, {
-	        key: 'handleCancel',
-	        value: function handleCancel(e) {
-	            this.props.toggleCreateTemplateModal();
-	        }
-	    }, {
-	        key: 'componentDidMount',
-	        value: function componentDidMount() {
-	            this.createBtn.addEventListener('click', this.handleCreate.bind(this));
-	            this.cancelBtn.addEventListener('click', this.handleCancel.bind(this));
-	        }
-	    }, {
-	        key: 'componentWillUpdate',
-	        value: function componentWillUpdate(nextProps) {
-	            if (nextProps.isOpen) {
-	                this.dialog.showModal();
-	            } else {
-	                this.dialog.close();
-	            }
-	        }
-	    }, {
-	        key: 'render',
-	        value: function render() {
-	            var _this2 = this;
-	
-	            return _react2.default.createElement(
-	                'dialog',
-	                { className: 'mdl-dialog',
-	                    ref: function ref(c) {
-	                        return _this2.dialog = c;
-	                    } },
-	                _react2.default.createElement(
-	                    'h4',
-	                    { className: 'mdl-dialog__title' },
-	                    'Add New Message Template'
-	                ),
-	                _react2.default.createElement(
-	                    'div',
-	                    { className: 'mdl-dialog__content' },
-	                    _react2.default.createElement('input', { type: 'text',
-	                        ref: function ref(c) {
-	                            return _this2.templateKeyInput = c;
-	                        } }),
-	                    _react2.default.createElement('input', { type: 'text',
-	                        ref: function ref(c) {
-	                            return _this2.templateInput = c;
-	                        } })
-	                ),
-	                _react2.default.createElement(
-	                    'div',
-	                    { className: 'mdl-dialog__actions' },
-	                    _react2.default.createElement(
-	                        'button',
-	                        { type: 'button',
-	                            className: 'mdl-button',
-	                            ref: function ref(c) {
-	                                return _this2.createBtn = c;
-	                            } },
-	                        'Create'
-	                    ),
-	                    _react2.default.createElement(
-	                        'button',
-	                        { type: 'button',
-	                            className: 'mdl-button close',
-	                            ref: function ref(c) {
-	                                return _this2.cancelBtn = c;
-	                            } },
-	                        'Cancel'
-	                    )
-	                )
-	            );
-	        }
-	    }]);
-	
-	    return CreateTemplate;
-	}(_react.Component);
-	
-	CreateTemplate.propTypes = {
-	    isOpen: _react.PropTypes.bool.isRequired,
-	    toggleCreateTemplateModal: _react.PropTypes.func.isRequired,
-	    handleSaveNewTemplate: _react.PropTypes.func.isRequired
-	};
-	
-	exports.default = CreateTemplate;
-
-/***/ },
-/* 162 */
-/*!*********************************************!*\
-  !*** ./components/filters/createFilter.jsx ***!
-  \*********************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(/*! react */ 1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var CreateFilter = function (_Component) {
-	    _inherits(CreateFilter, _Component);
-	
-	    function CreateFilter() {
-	        _classCallCheck(this, CreateFilter);
-	
-	        return _possibleConstructorReturn(this, Object.getPrototypeOf(CreateFilter).apply(this, arguments));
-	    }
-	
-	    _createClass(CreateFilter, [{
-	        key: 'shouldComponentUpdate',
-	        value: function shouldComponentUpdate(nextProps, nextState) {
-	            return nextProps.isOpen !== this.props.isOpen;
-	        }
-	    }, {
-	        key: 'handleCreate',
-	        value: function handleCreate(e) {
-	            var filterContactInput = this.filterContactInput.value;
-	            var filterWordsInput = this.filterWordsInput.value;
-	
-	            if (filterContactInput !== '' && filterWordsInput !== '') {
-	                var filters = filterWordsInput.split(',');
-	                this.props.handleSaveNewFilter({ contact: filterContactInput, filterWords: filters });
-	                this.props.toggleCreateFilterModal();
-	            }
-	        }
-	    }, {
-	        key: 'handleCancel',
-	        value: function handleCancel(e) {
-	            this.props.toggleCreateFilterModal();
-	        }
-	    }, {
-	        key: 'componentDidMount',
-	        value: function componentDidMount() {
-	            this.createBtn.addEventListener('click', this.handleCreate.bind(this));
-	            this.cancelBtn.addEventListener('click', this.handleCancel.bind(this));
-	        }
-	    }, {
-	        key: 'componentWillUpdate',
-	        value: function componentWillUpdate(nextProps) {
-	            if (nextProps.isOpen) {
-	                this.dialog.showModal();
-	            } else {
-	                this.dialog.close();
-	            }
-	        }
-	    }, {
-	        key: 'render',
-	        value: function render() {
-	            var _this2 = this;
-	
-	            return _react2.default.createElement(
-	                'dialog',
-	                { className: 'mdl-dialog',
-	                    ref: function ref(c) {
-	                        return _this2.dialog = c;
-	                    } },
-	                _react2.default.createElement(
-	                    'h4',
-	                    { className: 'mdl-dialog__title' },
-	                    'Create New Filter'
-	                ),
-	                _react2.default.createElement(
-	                    'div',
-	                    { className: 'mdl-dialog__content' },
-	                    _react2.default.createElement('input', { type: 'text',
-	                        ref: function ref(c) {
-	                            return _this2.filterContactInput = c;
-	                        } }),
-	                    _react2.default.createElement('input', { type: 'text',
-	                        ref: function ref(c) {
-	                            return _this2.filterWordsInput = c;
-	                        } })
-	                ),
-	                _react2.default.createElement(
-	                    'div',
-	                    { className: 'mdl-dialog__actions' },
-	                    _react2.default.createElement(
-	                        'button',
-	                        { type: 'button',
-	                            className: 'mdl-button',
-	                            ref: function ref(c) {
-	                                return _this2.createBtn = c;
-	                            } },
-	                        'Create'
-	                    ),
-	                    _react2.default.createElement(
-	                        'button',
-	                        { type: 'button',
-	                            className: 'mdl-button close',
-	                            ref: function ref(c) {
-	                                return _this2.cancelBtn = c;
-	                            } },
-	                        'Cancel'
-	                    )
-	                )
-	            );
-	        }
-	    }]);
-	
-	    return CreateFilter;
-	}(_react.Component);
-	
-	CreateFilter.propTypes = {
-	    isOpen: _react.PropTypes.bool.isRequired,
-	    toggleCreateFilterModal: _react.PropTypes.func.isRequired,
-	    handleSaveNewFilter: _react.PropTypes.func.isRequired
-	};
-	
-	exports.default = CreateFilter;
-
-/***/ },
-/* 163 */
-/*!*************************************!*\
-  !*** ./components/contactInput.jsx ***!
-  \*************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(/*! react */ 1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _keyCodes = __webpack_require__(/*! ../constants/keyCodes.js */ 164);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var ContactInput = function (_React$Component) {
-	    _inherits(ContactInput, _React$Component);
-	
-	    function ContactInput() {
-	        _classCallCheck(this, ContactInput);
-	
-	        return _possibleConstructorReturn(this, Object.getPrototypeOf(ContactInput).apply(this, arguments));
-	    }
-	
-	    _createClass(ContactInput, [{
-	        key: 'handleKeyUp',
-	        value: function handleKeyUp(e) {
-	            if (e.keyCode === _keyCodes.KEY_ENTER) {
-	                this.props.handleContactInput(this.input.value);
-	                this.input.value = '';
-	            }
-	        }
-	    }, {
-	        key: 'componentDidMount',
-	        value: function componentDidMount() {
-	            this.input.addEventListener('keyup', this.handleKeyUp.bind(this));
-	        }
-	    }, {
-	        key: 'render',
-	        value: function render() {
-	            var _this2 = this;
-	
-	            return _react2.default.createElement(
-	                'div',
-	                null,
-	                _react2.default.createElement(
-	                    'h5',
-	                    { style: styles.inlineObject },
-	                    'Input Contact'
-	                ),
-	                _react2.default.createElement('input', { type: 'text',
-	                    id: 'contactInput',
-	                    ref: function ref(c) {
-	                        return _this2.input = c;
-	                    },
-	                    style: styles.inlineObject })
-	            );
-	        }
-	    }]);
-	
-	    return ContactInput;
-	}(_react2.default.Component);
-	
-	var styles = {
-	    inlineObject: {
-	        display: 'inline-block',
-	        marinLeft: 10,
-	        marginRight: 10
-	    }
-	};
-	
-	exports.default = ContactInput;
-
-/***/ },
-/* 164 */
-/*!*******************************!*\
-  !*** ./constants/keyCodes.js ***!
-  \*******************************/
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	var KEY_ENTER = exports.KEY_ENTER = 13;
-
-/***/ },
-/* 165 */
-/*!***********************************!*\
-  !*** ./components/chatStream.jsx ***!
-  \***********************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(/*! react */ 1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _socket = __webpack_require__(/*! socket.io-client */ 166);
-	
-	var _socket2 = _interopRequireDefault(_socket);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var ChatStream = function (_React$Component) {
-	    _inherits(ChatStream, _React$Component);
-	
-	    function ChatStream(props) {
-	        _classCallCheck(this, ChatStream);
-	
-	        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ChatStream).call(this, props));
-	
-	        _this.state = {
-	            socket: null
-	        };
-	        return _this;
-	    }
-	
-	    _createClass(ChatStream, [{
-	        key: 'componentDidMount',
-	        value: function componentDidMount() {
-	            var socket = (0, _socket2.default)();
-	
-	            socket.on('messageReceived', function (message) {
-	                console.log(message);
-	            });
-	
-	            this.setState({ socket: socket });
-	        }
-	    }, {
-	        key: 'render',
-	        value: function render() {
-	            return _react2.default.createElement('div', { style: styles.chatStream });
-	        }
-	    }]);
-	
-	    return ChatStream;
-	}(_react2.default.Component);
-	
-	var styles = {
-	    chatStream: {
-	        height: 500,
-	        width: 400,
-	        border: '2px solid #F44336',
-	        margin: '0 auto'
-	    }
-	};
-	
-	exports.default = ChatStream;
-
-/***/ },
-/* 166 */
 /*!******************************************!*\
   !*** ../~/socket.io-client/lib/index.js ***!
   \******************************************/
@@ -20898,10 +20398,10 @@
 	 * Module dependencies.
 	 */
 	
-	var url = __webpack_require__(/*! ./url */ 167);
-	var parser = __webpack_require__(/*! socket.io-parser */ 172);
-	var Manager = __webpack_require__(/*! ./manager */ 180);
-	var debug = __webpack_require__(/*! debug */ 169)('socket.io-client');
+	var url = __webpack_require__(/*! ./url */ 161);
+	var parser = __webpack_require__(/*! socket.io-parser */ 166);
+	var Manager = __webpack_require__(/*! ./manager */ 174);
+	var debug = __webpack_require__(/*! debug */ 163)('socket.io-client');
 	
 	/**
 	 * Module exports.
@@ -20983,12 +20483,12 @@
 	 * @api public
 	 */
 	
-	exports.Manager = __webpack_require__(/*! ./manager */ 180);
-	exports.Socket = __webpack_require__(/*! ./socket */ 208);
+	exports.Manager = __webpack_require__(/*! ./manager */ 174);
+	exports.Socket = __webpack_require__(/*! ./socket */ 202);
 
 
 /***/ },
-/* 167 */
+/* 161 */
 /*!****************************************!*\
   !*** ../~/socket.io-client/lib/url.js ***!
   \****************************************/
@@ -20999,8 +20499,8 @@
 	 * Module dependencies.
 	 */
 	
-	var parseuri = __webpack_require__(/*! parseuri */ 168);
-	var debug = __webpack_require__(/*! debug */ 169)('socket.io-client:url');
+	var parseuri = __webpack_require__(/*! parseuri */ 162);
+	var debug = __webpack_require__(/*! debug */ 163)('socket.io-client:url');
 	
 	/**
 	 * Module exports.
@@ -21074,7 +20574,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 168 */
+/* 162 */
 /*!*************************************************!*\
   !*** ../~/socket.io-client/~/parseuri/index.js ***!
   \*************************************************/
@@ -21122,7 +20622,7 @@
 
 
 /***/ },
-/* 169 */
+/* 163 */
 /*!************************************************!*\
   !*** ../~/socket.io-client/~/debug/browser.js ***!
   \************************************************/
@@ -21135,7 +20635,7 @@
 	 * Expose `debug()` as the module.
 	 */
 	
-	exports = module.exports = __webpack_require__(/*! ./debug */ 170);
+	exports = module.exports = __webpack_require__(/*! ./debug */ 164);
 	exports.log = log;
 	exports.formatArgs = formatArgs;
 	exports.save = save;
@@ -21299,7 +20799,7 @@
 
 
 /***/ },
-/* 170 */
+/* 164 */
 /*!**********************************************!*\
   !*** ../~/socket.io-client/~/debug/debug.js ***!
   \**********************************************/
@@ -21318,7 +20818,7 @@
 	exports.disable = disable;
 	exports.enable = enable;
 	exports.enabled = enabled;
-	exports.humanize = __webpack_require__(/*! ms */ 171);
+	exports.humanize = __webpack_require__(/*! ms */ 165);
 	
 	/**
 	 * The currently active debug mode names, and names to skip.
@@ -21505,7 +21005,7 @@
 
 
 /***/ },
-/* 171 */
+/* 165 */
 /*!***************************************************!*\
   !*** ../~/socket.io-client/~/debug/~/ms/index.js ***!
   \***************************************************/
@@ -21639,7 +21139,7 @@
 
 
 /***/ },
-/* 172 */
+/* 166 */
 /*!*********************************************************!*\
   !*** ../~/socket.io-client/~/socket.io-parser/index.js ***!
   \*********************************************************/
@@ -21650,12 +21150,12 @@
 	 * Module dependencies.
 	 */
 	
-	var debug = __webpack_require__(/*! debug */ 169)('socket.io-parser');
-	var json = __webpack_require__(/*! json3 */ 173);
-	var isArray = __webpack_require__(/*! isarray */ 176);
-	var Emitter = __webpack_require__(/*! component-emitter */ 177);
-	var binary = __webpack_require__(/*! ./binary */ 178);
-	var isBuf = __webpack_require__(/*! ./is-buffer */ 179);
+	var debug = __webpack_require__(/*! debug */ 163)('socket.io-parser');
+	var json = __webpack_require__(/*! json3 */ 167);
+	var isArray = __webpack_require__(/*! isarray */ 170);
+	var Emitter = __webpack_require__(/*! component-emitter */ 171);
+	var binary = __webpack_require__(/*! ./binary */ 172);
+	var isBuf = __webpack_require__(/*! ./is-buffer */ 173);
 	
 	/**
 	 * Protocol version.
@@ -22048,7 +21548,7 @@
 
 
 /***/ },
-/* 173 */
+/* 167 */
 /*!*********************************************************************!*\
   !*** ../~/socket.io-client/~/socket.io-parser/~/json3/lib/json3.js ***!
   \*********************************************************************/
@@ -22058,7 +21558,7 @@
 	;(function () {
 	  // Detect the `define` function exposed by asynchronous module loaders. The
 	  // strict `define` check is necessary for compatibility with `r.js`.
-	  var isLoader = "function" === "function" && __webpack_require__(/*! !webpack amd options */ 175);
+	  var isLoader = "function" === "function" && __webpack_require__(/*! !webpack amd options */ 169);
 	
 	  // A set of types used to distinguish objects from primitives.
 	  var objectTypes = {
@@ -22957,10 +22457,10 @@
 	  }
 	}).call(this);
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../../../../../../webpack/buildin/module.js */ 174)(module), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../../../../../../webpack/buildin/module.js */ 168)(module), (function() { return this; }())))
 
 /***/ },
-/* 174 */
+/* 168 */
 /*!**************************************!*\
   !*** ../~/webpack/buildin/module.js ***!
   \**************************************/
@@ -22979,7 +22479,7 @@
 
 
 /***/ },
-/* 175 */
+/* 169 */
 /*!*******************************************!*\
   !*** ../~/webpack/buildin/amd-options.js ***!
   \*******************************************/
@@ -22990,7 +22490,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 176 */
+/* 170 */
 /*!*******************************************************************!*\
   !*** ../~/socket.io-client/~/socket.io-parser/~/isarray/index.js ***!
   \*******************************************************************/
@@ -23002,7 +22502,7 @@
 
 
 /***/ },
-/* 177 */
+/* 171 */
 /*!*****************************************************************************!*\
   !*** ../~/socket.io-client/~/socket.io-parser/~/component-emitter/index.js ***!
   \*****************************************************************************/
@@ -23175,7 +22675,7 @@
 
 
 /***/ },
-/* 178 */
+/* 172 */
 /*!**********************************************************!*\
   !*** ../~/socket.io-client/~/socket.io-parser/binary.js ***!
   \**********************************************************/
@@ -23187,8 +22687,8 @@
 	 * Module requirements
 	 */
 	
-	var isArray = __webpack_require__(/*! isarray */ 176);
-	var isBuf = __webpack_require__(/*! ./is-buffer */ 179);
+	var isArray = __webpack_require__(/*! isarray */ 170);
+	var isBuf = __webpack_require__(/*! ./is-buffer */ 173);
 	
 	/**
 	 * Replaces every Buffer | ArrayBuffer in packet with a numbered placeholder.
@@ -23326,7 +22826,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 179 */
+/* 173 */
 /*!*************************************************************!*\
   !*** ../~/socket.io-client/~/socket.io-parser/is-buffer.js ***!
   \*************************************************************/
@@ -23349,7 +22849,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 180 */
+/* 174 */
 /*!********************************************!*\
   !*** ../~/socket.io-client/lib/manager.js ***!
   \********************************************/
@@ -23360,15 +22860,15 @@
 	 * Module dependencies.
 	 */
 	
-	var eio = __webpack_require__(/*! engine.io-client */ 181);
-	var Socket = __webpack_require__(/*! ./socket */ 208);
-	var Emitter = __webpack_require__(/*! component-emitter */ 209);
-	var parser = __webpack_require__(/*! socket.io-parser */ 172);
-	var on = __webpack_require__(/*! ./on */ 211);
-	var bind = __webpack_require__(/*! component-bind */ 212);
-	var debug = __webpack_require__(/*! debug */ 169)('socket.io-client:manager');
-	var indexOf = __webpack_require__(/*! indexof */ 206);
-	var Backoff = __webpack_require__(/*! backo2 */ 215);
+	var eio = __webpack_require__(/*! engine.io-client */ 175);
+	var Socket = __webpack_require__(/*! ./socket */ 202);
+	var Emitter = __webpack_require__(/*! component-emitter */ 203);
+	var parser = __webpack_require__(/*! socket.io-parser */ 166);
+	var on = __webpack_require__(/*! ./on */ 205);
+	var bind = __webpack_require__(/*! component-bind */ 206);
+	var debug = __webpack_require__(/*! debug */ 163)('socket.io-client:manager');
+	var indexOf = __webpack_require__(/*! indexof */ 200);
+	var Backoff = __webpack_require__(/*! backo2 */ 209);
 	
 	/**
 	 * IE6+ hasOwnProperty
@@ -23915,25 +23415,25 @@
 
 
 /***/ },
-/* 181 */
+/* 175 */
 /*!*********************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/index.js ***!
   \*********************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	module.exports =  __webpack_require__(/*! ./lib/ */ 182);
+	module.exports =  __webpack_require__(/*! ./lib/ */ 176);
 
 
 /***/ },
-/* 182 */
+/* 176 */
 /*!*************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/lib/index.js ***!
   \*************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	module.exports = __webpack_require__(/*! ./socket */ 183);
+	module.exports = __webpack_require__(/*! ./socket */ 177);
 	
 	/**
 	 * Exports parser
@@ -23941,11 +23441,11 @@
 	 * @api public
 	 *
 	 */
-	module.exports.parser = __webpack_require__(/*! engine.io-parser */ 190);
+	module.exports.parser = __webpack_require__(/*! engine.io-parser */ 184);
 
 
 /***/ },
-/* 183 */
+/* 177 */
 /*!**************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/lib/socket.js ***!
   \**************************************************************/
@@ -23955,14 +23455,14 @@
 	 * Module dependencies.
 	 */
 	
-	var transports = __webpack_require__(/*! ./transports */ 184);
-	var Emitter = __webpack_require__(/*! component-emitter */ 199);
-	var debug = __webpack_require__(/*! debug */ 169)('engine.io-client:socket');
-	var index = __webpack_require__(/*! indexof */ 206);
-	var parser = __webpack_require__(/*! engine.io-parser */ 190);
-	var parseuri = __webpack_require__(/*! parseuri */ 168);
-	var parsejson = __webpack_require__(/*! parsejson */ 207);
-	var parseqs = __webpack_require__(/*! parseqs */ 200);
+	var transports = __webpack_require__(/*! ./transports */ 178);
+	var Emitter = __webpack_require__(/*! component-emitter */ 193);
+	var debug = __webpack_require__(/*! debug */ 163)('engine.io-client:socket');
+	var index = __webpack_require__(/*! indexof */ 200);
+	var parser = __webpack_require__(/*! engine.io-parser */ 184);
+	var parseuri = __webpack_require__(/*! parseuri */ 162);
+	var parsejson = __webpack_require__(/*! parsejson */ 201);
+	var parseqs = __webpack_require__(/*! parseqs */ 194);
 	
 	/**
 	 * Module exports.
@@ -24086,9 +23586,9 @@
 	 */
 	
 	Socket.Socket = Socket;
-	Socket.Transport = __webpack_require__(/*! ./transport */ 189);
-	Socket.transports = __webpack_require__(/*! ./transports */ 184);
-	Socket.parser = __webpack_require__(/*! engine.io-parser */ 190);
+	Socket.Transport = __webpack_require__(/*! ./transport */ 183);
+	Socket.transports = __webpack_require__(/*! ./transports */ 178);
+	Socket.parser = __webpack_require__(/*! engine.io-parser */ 184);
 	
 	/**
 	 * Creates transport of the given type.
@@ -24683,7 +24183,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 184 */
+/* 178 */
 /*!************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/lib/transports/index.js ***!
   \************************************************************************/
@@ -24693,10 +24193,10 @@
 	 * Module dependencies
 	 */
 	
-	var XMLHttpRequest = __webpack_require__(/*! xmlhttprequest-ssl */ 185);
-	var XHR = __webpack_require__(/*! ./polling-xhr */ 187);
-	var JSONP = __webpack_require__(/*! ./polling-jsonp */ 203);
-	var websocket = __webpack_require__(/*! ./websocket */ 204);
+	var XMLHttpRequest = __webpack_require__(/*! xmlhttprequest-ssl */ 179);
+	var XHR = __webpack_require__(/*! ./polling-xhr */ 181);
+	var JSONP = __webpack_require__(/*! ./polling-jsonp */ 197);
+	var websocket = __webpack_require__(/*! ./websocket */ 198);
 	
 	/**
 	 * Export transports.
@@ -24746,14 +24246,14 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 185 */
+/* 179 */
 /*!**********************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/lib/xmlhttprequest.js ***!
   \**********************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	// browser shim for xmlhttprequest module
-	var hasCORS = __webpack_require__(/*! has-cors */ 186);
+	var hasCORS = __webpack_require__(/*! has-cors */ 180);
 	
 	module.exports = function(opts) {
 	  var xdomain = opts.xdomain;
@@ -24791,7 +24291,7 @@
 
 
 /***/ },
-/* 186 */
+/* 180 */
 /*!********************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/has-cors/index.js ***!
   \********************************************************************/
@@ -24817,7 +24317,7 @@
 
 
 /***/ },
-/* 187 */
+/* 181 */
 /*!******************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/lib/transports/polling-xhr.js ***!
   \******************************************************************************/
@@ -24827,11 +24327,11 @@
 	 * Module requirements.
 	 */
 	
-	var XMLHttpRequest = __webpack_require__(/*! xmlhttprequest-ssl */ 185);
-	var Polling = __webpack_require__(/*! ./polling */ 188);
-	var Emitter = __webpack_require__(/*! component-emitter */ 199);
-	var inherit = __webpack_require__(/*! component-inherit */ 201);
-	var debug = __webpack_require__(/*! debug */ 169)('engine.io-client:polling-xhr');
+	var XMLHttpRequest = __webpack_require__(/*! xmlhttprequest-ssl */ 179);
+	var Polling = __webpack_require__(/*! ./polling */ 182);
+	var Emitter = __webpack_require__(/*! component-emitter */ 193);
+	var inherit = __webpack_require__(/*! component-inherit */ 195);
+	var debug = __webpack_require__(/*! debug */ 163)('engine.io-client:polling-xhr');
 	
 	/**
 	 * Module exports.
@@ -25239,7 +24739,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 188 */
+/* 182 */
 /*!**************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/lib/transports/polling.js ***!
   \**************************************************************************/
@@ -25249,12 +24749,12 @@
 	 * Module dependencies.
 	 */
 	
-	var Transport = __webpack_require__(/*! ../transport */ 189);
-	var parseqs = __webpack_require__(/*! parseqs */ 200);
-	var parser = __webpack_require__(/*! engine.io-parser */ 190);
-	var inherit = __webpack_require__(/*! component-inherit */ 201);
-	var yeast = __webpack_require__(/*! yeast */ 202);
-	var debug = __webpack_require__(/*! debug */ 169)('engine.io-client:polling');
+	var Transport = __webpack_require__(/*! ../transport */ 183);
+	var parseqs = __webpack_require__(/*! parseqs */ 194);
+	var parser = __webpack_require__(/*! engine.io-parser */ 184);
+	var inherit = __webpack_require__(/*! component-inherit */ 195);
+	var yeast = __webpack_require__(/*! yeast */ 196);
+	var debug = __webpack_require__(/*! debug */ 163)('engine.io-client:polling');
 	
 	/**
 	 * Module exports.
@@ -25267,7 +24767,7 @@
 	 */
 	
 	var hasXHR2 = (function() {
-	  var XMLHttpRequest = __webpack_require__(/*! xmlhttprequest-ssl */ 185);
+	  var XMLHttpRequest = __webpack_require__(/*! xmlhttprequest-ssl */ 179);
 	  var xhr = new XMLHttpRequest({ xdomain: false });
 	  return null != xhr.responseType;
 	})();
@@ -25495,7 +24995,7 @@
 
 
 /***/ },
-/* 189 */
+/* 183 */
 /*!*****************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/lib/transport.js ***!
   \*****************************************************************/
@@ -25505,8 +25005,8 @@
 	 * Module dependencies.
 	 */
 	
-	var parser = __webpack_require__(/*! engine.io-parser */ 190);
-	var Emitter = __webpack_require__(/*! component-emitter */ 199);
+	var parser = __webpack_require__(/*! engine.io-parser */ 184);
+	var Emitter = __webpack_require__(/*! component-emitter */ 193);
 	
 	/**
 	 * Module exports.
@@ -25659,7 +25159,7 @@
 
 
 /***/ },
-/* 190 */
+/* 184 */
 /*!**********************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/engine.io-parser/lib/browser.js ***!
   \**********************************************************************************/
@@ -25669,12 +25169,12 @@
 	 * Module dependencies.
 	 */
 	
-	var keys = __webpack_require__(/*! ./keys */ 191);
-	var hasBinary = __webpack_require__(/*! has-binary */ 192);
-	var sliceBuffer = __webpack_require__(/*! arraybuffer.slice */ 194);
-	var base64encoder = __webpack_require__(/*! base64-arraybuffer */ 195);
-	var after = __webpack_require__(/*! after */ 196);
-	var utf8 = __webpack_require__(/*! utf8 */ 197);
+	var keys = __webpack_require__(/*! ./keys */ 185);
+	var hasBinary = __webpack_require__(/*! has-binary */ 186);
+	var sliceBuffer = __webpack_require__(/*! arraybuffer.slice */ 188);
+	var base64encoder = __webpack_require__(/*! base64-arraybuffer */ 189);
+	var after = __webpack_require__(/*! after */ 190);
+	var utf8 = __webpack_require__(/*! utf8 */ 191);
 	
 	/**
 	 * Check if we are running an android browser. That requires us to use
@@ -25731,7 +25231,7 @@
 	 * Create a blob api even for blob builder when vendor prefixes exist
 	 */
 	
-	var Blob = __webpack_require__(/*! blob */ 198);
+	var Blob = __webpack_require__(/*! blob */ 192);
 	
 	/**
 	 * Encodes a packet.
@@ -26263,7 +25763,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 191 */
+/* 185 */
 /*!*******************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/engine.io-parser/lib/keys.js ***!
   \*******************************************************************************/
@@ -26291,7 +25791,7 @@
 
 
 /***/ },
-/* 192 */
+/* 186 */
 /*!*****************************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/engine.io-parser/~/has-binary/index.js ***!
   \*****************************************************************************************/
@@ -26302,7 +25802,7 @@
 	 * Module requirements.
 	 */
 	
-	var isArray = __webpack_require__(/*! isarray */ 193);
+	var isArray = __webpack_require__(/*! isarray */ 187);
 	
 	/**
 	 * Module exports.
@@ -26359,7 +25859,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 193 */
+/* 187 */
 /*!***************************************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/engine.io-parser/~/has-binary/~/isarray/index.js ***!
   \***************************************************************************************************/
@@ -26371,7 +25871,7 @@
 
 
 /***/ },
-/* 194 */
+/* 188 */
 /*!************************************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/engine.io-parser/~/arraybuffer.slice/index.js ***!
   \************************************************************************************************/
@@ -26409,7 +25909,7 @@
 
 
 /***/ },
-/* 195 */
+/* 189 */
 /*!******************************************************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/engine.io-parser/~/base64-arraybuffer/lib/base64-arraybuffer.js ***!
   \******************************************************************************************************************/
@@ -26477,7 +25977,7 @@
 
 
 /***/ },
-/* 196 */
+/* 190 */
 /*!************************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/engine.io-parser/~/after/index.js ***!
   \************************************************************************************/
@@ -26514,7 +26014,7 @@
 
 
 /***/ },
-/* 197 */
+/* 191 */
 /*!**********************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/engine.io-parser/~/utf8/utf8.js ***!
   \**********************************************************************************/
@@ -26763,10 +26263,10 @@
 	
 	}(this));
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../../../../../../../webpack/buildin/module.js */ 174)(module), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../../../../../../../webpack/buildin/module.js */ 168)(module), (function() { return this; }())))
 
 /***/ },
-/* 198 */
+/* 192 */
 /*!***********************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/engine.io-parser/~/blob/index.js ***!
   \***********************************************************************************/
@@ -26872,7 +26372,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 199 */
+/* 193 */
 /*!*****************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/component-emitter/index.js ***!
   \*****************************************************************************/
@@ -27045,7 +26545,7 @@
 
 
 /***/ },
-/* 200 */
+/* 194 */
 /*!*******************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/parseqs/index.js ***!
   \*******************************************************************/
@@ -27091,7 +26591,7 @@
 
 
 /***/ },
-/* 201 */
+/* 195 */
 /*!*****************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/component-inherit/index.js ***!
   \*****************************************************************************/
@@ -27106,7 +26606,7 @@
 	};
 
 /***/ },
-/* 202 */
+/* 196 */
 /*!*****************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/yeast/index.js ***!
   \*****************************************************************/
@@ -27183,7 +26683,7 @@
 
 
 /***/ },
-/* 203 */
+/* 197 */
 /*!********************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/lib/transports/polling-jsonp.js ***!
   \********************************************************************************/
@@ -27194,8 +26694,8 @@
 	 * Module requirements.
 	 */
 	
-	var Polling = __webpack_require__(/*! ./polling */ 188);
-	var inherit = __webpack_require__(/*! component-inherit */ 201);
+	var Polling = __webpack_require__(/*! ./polling */ 182);
+	var inherit = __webpack_require__(/*! component-inherit */ 195);
 	
 	/**
 	 * Module exports.
@@ -27431,7 +26931,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 204 */
+/* 198 */
 /*!****************************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/lib/transports/websocket.js ***!
   \****************************************************************************/
@@ -27441,12 +26941,12 @@
 	 * Module dependencies.
 	 */
 	
-	var Transport = __webpack_require__(/*! ../transport */ 189);
-	var parser = __webpack_require__(/*! engine.io-parser */ 190);
-	var parseqs = __webpack_require__(/*! parseqs */ 200);
-	var inherit = __webpack_require__(/*! component-inherit */ 201);
-	var yeast = __webpack_require__(/*! yeast */ 202);
-	var debug = __webpack_require__(/*! debug */ 169)('engine.io-client:websocket');
+	var Transport = __webpack_require__(/*! ../transport */ 183);
+	var parser = __webpack_require__(/*! engine.io-parser */ 184);
+	var parseqs = __webpack_require__(/*! parseqs */ 194);
+	var inherit = __webpack_require__(/*! component-inherit */ 195);
+	var yeast = __webpack_require__(/*! yeast */ 196);
+	var debug = __webpack_require__(/*! debug */ 163)('engine.io-client:websocket');
 	var BrowserWebSocket = global.WebSocket || global.MozWebSocket;
 	
 	/**
@@ -27458,7 +26958,7 @@
 	var WebSocket = BrowserWebSocket;
 	if (!WebSocket && typeof window === 'undefined') {
 	  try {
-	    WebSocket = __webpack_require__(/*! ws */ 205);
+	    WebSocket = __webpack_require__(/*! ws */ 199);
 	  } catch (e) { }
 	}
 	
@@ -27729,7 +27229,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 205 */
+/* 199 */
 /*!********************!*\
   !*** ws (ignored) ***!
   \********************/
@@ -27738,7 +27238,7 @@
 	/* (ignored) */
 
 /***/ },
-/* 206 */
+/* 200 */
 /*!************************************************!*\
   !*** ../~/socket.io-client/~/indexof/index.js ***!
   \************************************************/
@@ -27756,7 +27256,7 @@
 	};
 
 /***/ },
-/* 207 */
+/* 201 */
 /*!*********************************************************************!*\
   !*** ../~/socket.io-client/~/engine.io-client/~/parsejson/index.js ***!
   \*********************************************************************/
@@ -27797,7 +27297,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 208 */
+/* 202 */
 /*!*******************************************!*\
   !*** ../~/socket.io-client/lib/socket.js ***!
   \*******************************************/
@@ -27808,13 +27308,13 @@
 	 * Module dependencies.
 	 */
 	
-	var parser = __webpack_require__(/*! socket.io-parser */ 172);
-	var Emitter = __webpack_require__(/*! component-emitter */ 209);
-	var toArray = __webpack_require__(/*! to-array */ 210);
-	var on = __webpack_require__(/*! ./on */ 211);
-	var bind = __webpack_require__(/*! component-bind */ 212);
-	var debug = __webpack_require__(/*! debug */ 169)('socket.io-client:socket');
-	var hasBin = __webpack_require__(/*! has-binary */ 213);
+	var parser = __webpack_require__(/*! socket.io-parser */ 166);
+	var Emitter = __webpack_require__(/*! component-emitter */ 203);
+	var toArray = __webpack_require__(/*! to-array */ 204);
+	var on = __webpack_require__(/*! ./on */ 205);
+	var bind = __webpack_require__(/*! component-bind */ 206);
+	var debug = __webpack_require__(/*! debug */ 163)('socket.io-client:socket');
+	var hasBin = __webpack_require__(/*! has-binary */ 207);
 	
 	/**
 	 * Module exports.
@@ -28218,7 +27718,7 @@
 
 
 /***/ },
-/* 209 */
+/* 203 */
 /*!**********************************************************!*\
   !*** ../~/socket.io-client/~/component-emitter/index.js ***!
   \**********************************************************/
@@ -28388,7 +27888,7 @@
 
 
 /***/ },
-/* 210 */
+/* 204 */
 /*!*************************************************!*\
   !*** ../~/socket.io-client/~/to-array/index.js ***!
   \*************************************************/
@@ -28410,7 +27910,7 @@
 
 
 /***/ },
-/* 211 */
+/* 205 */
 /*!***************************************!*\
   !*** ../~/socket.io-client/lib/on.js ***!
   \***************************************/
@@ -28443,7 +27943,7 @@
 
 
 /***/ },
-/* 212 */
+/* 206 */
 /*!*******************************************************!*\
   !*** ../~/socket.io-client/~/component-bind/index.js ***!
   \*******************************************************/
@@ -28475,7 +27975,7 @@
 
 
 /***/ },
-/* 213 */
+/* 207 */
 /*!***************************************************!*\
   !*** ../~/socket.io-client/~/has-binary/index.js ***!
   \***************************************************/
@@ -28486,7 +27986,7 @@
 	 * Module requirements.
 	 */
 	
-	var isArray = __webpack_require__(/*! isarray */ 214);
+	var isArray = __webpack_require__(/*! isarray */ 208);
 	
 	/**
 	 * Module exports.
@@ -28544,7 +28044,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 214 */
+/* 208 */
 /*!*************************************************************!*\
   !*** ../~/socket.io-client/~/has-binary/~/isarray/index.js ***!
   \*************************************************************/
@@ -28556,7 +28056,7 @@
 
 
 /***/ },
-/* 215 */
+/* 209 */
 /*!***********************************************!*\
   !*** ../~/socket.io-client/~/backo2/index.js ***!
   \***********************************************/
@@ -28650,7 +28150,593 @@
 
 
 /***/ },
+/* 210 */
+/*!*******************************!*\
+  !*** ./components/header.jsx ***!
+  \*******************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Header = function (_Component) {
+	    _inherits(Header, _Component);
+	
+	    function Header() {
+	        _classCallCheck(this, Header);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(Header).apply(this, arguments));
+	    }
+	
+	    _createClass(Header, [{
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.createTemplate.addEventListener('click', this.props.toggleCreateTemplateModal);
+	            this.createFilter.addEventListener('click', this.props.toggleCreateFilterModal);
+	            this.createAutoMessage.addEventListener('click', this.props.toggleCreateAutoMessageModal);
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'header',
+	                { className: 'mdl-layout__header' },
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-layout__header-row' },
+	                    _react2.default.createElement(
+	                        'span',
+	                        { className: 'mdl-layout-title' },
+	                        'Chattr'
+	                    ),
+	                    _react2.default.createElement('div', { className: 'mdl-layout-spacer' }),
+	                    _react2.default.createElement(
+	                        'nav',
+	                        { className: 'mdl-navigation mdl-layout--large-screen-only' },
+	                        _react2.default.createElement(
+	                            'a',
+	                            { className: 'mdl-navigation__link',
+	                                ref: function ref(c) {
+	                                    return _this2.createTemplate = c;
+	                                },
+	                                href: '#' },
+	                            'Create Template'
+	                        ),
+	                        _react2.default.createElement(
+	                            'a',
+	                            { className: 'mdl-navigation__link',
+	                                href: '#',
+	                                ref: function ref(c) {
+	                                    return _this2.createFilter = c;
+	                                } },
+	                            'Filters'
+	                        ),
+	                        _react2.default.createElement(
+	                            'a',
+	                            { className: 'mdl-navigation__link',
+	                                href: '#',
+	                                ref: function ref(c) {
+	                                    return _this2.createAutoMessage = c;
+	                                } },
+	                            'Automated Messages'
+	                        )
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return Header;
+	}(_react.Component);
+	
+	Header.propTypes = {
+	    toggleCreateTemplateModal: _react.PropTypes.func.isRequired,
+	    toggleCreateFilterModal: _react.PropTypes.func.isRequired,
+	    toggleCreateAutoMessageModal: _react.PropTypes.func.isRequired
+	};
+	
+	exports.default = Header;
+
+/***/ },
+/* 211 */
+/*!*************************************************!*\
+  !*** ./components/templates/createTemplate.jsx ***!
+  \*************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var CreateTemplate = function (_Component) {
+	    _inherits(CreateTemplate, _Component);
+	
+	    function CreateTemplate() {
+	        _classCallCheck(this, CreateTemplate);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(CreateTemplate).apply(this, arguments));
+	    }
+	
+	    _createClass(CreateTemplate, [{
+	        key: 'shouldComponentUpdate',
+	        value: function shouldComponentUpdate(nextProps, nextState) {
+	            return nextProps.isOpen !== this.props.isOpen;
+	        }
+	    }, {
+	        key: 'handleCreate',
+	        value: function handleCreate(e) {
+	            var keyInput = this.templateKeyInput.value;
+	            var templateInput = this.templateInput.value;
+	
+	            if (keyInput !== '' && templateInput !== '') {
+	                keyInput = ":" + keyInput;
+	                this.props.handleSaveNewTemplate({ key: keyInput, value: templateInput });
+	                this.props.toggleCreateTemplateModal();
+	            }
+	        }
+	    }, {
+	        key: 'handleCancel',
+	        value: function handleCancel(e) {
+	            this.props.toggleCreateTemplateModal();
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.createBtn.addEventListener('click', this.handleCreate.bind(this));
+	            this.cancelBtn.addEventListener('click', this.handleCancel.bind(this));
+	        }
+	    }, {
+	        key: 'componentWillUpdate',
+	        value: function componentWillUpdate(nextProps) {
+	            if (nextProps.isOpen) {
+	                this.dialog.showModal();
+	            } else {
+	                this.dialog.close();
+	            }
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'dialog',
+	                { className: 'mdl-dialog',
+	                    ref: function ref(c) {
+	                        return _this2.dialog = c;
+	                    } },
+	                _react2.default.createElement(
+	                    'h4',
+	                    { className: 'mdl-dialog__title' },
+	                    'Add New Message Template'
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__content' },
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.templateKeyInput = c;
+	                        } }),
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.templateInput = c;
+	                        } })
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__actions' },
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button',
+	                            ref: function ref(c) {
+	                                return _this2.createBtn = c;
+	                            } },
+	                        'Create'
+	                    ),
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button close',
+	                            ref: function ref(c) {
+	                                return _this2.cancelBtn = c;
+	                            } },
+	                        'Cancel'
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return CreateTemplate;
+	}(_react.Component);
+	
+	CreateTemplate.propTypes = {
+	    isOpen: _react.PropTypes.bool.isRequired,
+	    toggleCreateTemplateModal: _react.PropTypes.func.isRequired,
+	    handleSaveNewTemplate: _react.PropTypes.func.isRequired
+	};
+	
+	exports.default = CreateTemplate;
+
+/***/ },
+/* 212 */
+/*!*********************************************!*\
+  !*** ./components/filters/createFilter.jsx ***!
+  \*********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var CreateFilter = function (_Component) {
+	    _inherits(CreateFilter, _Component);
+	
+	    function CreateFilter() {
+	        _classCallCheck(this, CreateFilter);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(CreateFilter).apply(this, arguments));
+	    }
+	
+	    _createClass(CreateFilter, [{
+	        key: 'shouldComponentUpdate',
+	        value: function shouldComponentUpdate(nextProps, nextState) {
+	            return nextProps.isOpen !== this.props.isOpen;
+	        }
+	    }, {
+	        key: 'handleCreate',
+	        value: function handleCreate(e) {
+	            var filterContactInput = this.filterContactInput.value;
+	            var filterWordsInput = this.filterWordsInput.value;
+	
+	            if (filterContactInput !== '' && filterWordsInput !== '') {
+	                var filters = filterWordsInput.split(',');
+	                this.props.handleSaveNewFilter({ contact: filterContactInput, filterWords: filters });
+	                this.props.toggleCreateFilterModal();
+	            }
+	        }
+	    }, {
+	        key: 'handleCancel',
+	        value: function handleCancel(e) {
+	            this.props.toggleCreateFilterModal();
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.createBtn.addEventListener('click', this.handleCreate.bind(this));
+	            this.cancelBtn.addEventListener('click', this.handleCancel.bind(this));
+	        }
+	    }, {
+	        key: 'componentWillUpdate',
+	        value: function componentWillUpdate(nextProps) {
+	            if (nextProps.isOpen) {
+	                this.dialog.showModal();
+	            } else {
+	                this.dialog.close();
+	            }
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'dialog',
+	                { className: 'mdl-dialog',
+	                    ref: function ref(c) {
+	                        return _this2.dialog = c;
+	                    } },
+	                _react2.default.createElement(
+	                    'h4',
+	                    { className: 'mdl-dialog__title' },
+	                    'Create New Filter'
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__content' },
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.filterContactInput = c;
+	                        } }),
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.filterWordsInput = c;
+	                        } })
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__actions' },
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button',
+	                            ref: function ref(c) {
+	                                return _this2.createBtn = c;
+	                            } },
+	                        'Create'
+	                    ),
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button close',
+	                            ref: function ref(c) {
+	                                return _this2.cancelBtn = c;
+	                            } },
+	                        'Cancel'
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return CreateFilter;
+	}(_react.Component);
+	
+	CreateFilter.propTypes = {
+	    isOpen: _react.PropTypes.bool.isRequired,
+	    toggleCreateFilterModal: _react.PropTypes.func.isRequired,
+	    handleSaveNewFilter: _react.PropTypes.func.isRequired
+	};
+	
+	exports.default = CreateFilter;
+
+/***/ },
+/* 213 */
+/*!*************************************!*\
+  !*** ./components/contactInput.jsx ***!
+  \*************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _keyCodes = __webpack_require__(/*! ../constants/keyCodes.js */ 214);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ContactInput = function (_React$Component) {
+	    _inherits(ContactInput, _React$Component);
+	
+	    function ContactInput() {
+	        _classCallCheck(this, ContactInput);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(ContactInput).apply(this, arguments));
+	    }
+	
+	    _createClass(ContactInput, [{
+	        key: 'handleKeyUp',
+	        value: function handleKeyUp(e) {
+	            if (e.keyCode === _keyCodes.KEY_ENTER) {
+	                this.props.handleContactInput(this.input.value);
+	                this.input.value = '';
+	            }
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.input.addEventListener('keyup', this.handleKeyUp.bind(this));
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'div',
+	                null,
+	                _react2.default.createElement(
+	                    'h5',
+	                    { style: styles.inlineObject },
+	                    'Input Contact'
+	                ),
+	                _react2.default.createElement('input', { type: 'text',
+	                    id: 'contactInput',
+	                    ref: function ref(c) {
+	                        return _this2.input = c;
+	                    },
+	                    style: styles.inlineObject })
+	            );
+	        }
+	    }]);
+	
+	    return ContactInput;
+	}(_react2.default.Component);
+	
+	var styles = {
+	    inlineObject: {
+	        display: 'inline-block',
+	        marinLeft: 10,
+	        marginRight: 10
+	    }
+	};
+	
+	exports.default = ContactInput;
+
+/***/ },
+/* 214 */
+/*!*******************************!*\
+  !*** ./constants/keyCodes.js ***!
+  \*******************************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var KEY_ENTER = exports.KEY_ENTER = 13;
+
+/***/ },
+/* 215 */
+/*!***********************************!*\
+  !*** ./components/chatStream.jsx ***!
+  \***********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _chatMessage = __webpack_require__(/*! ./chatMessage.jsx */ 216);
+	
+	var _chatMessage2 = _interopRequireDefault(_chatMessage);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ChatStream = function (_React$Component) {
+	    _inherits(ChatStream, _React$Component);
+	
+	    function ChatStream() {
+	        _classCallCheck(this, ChatStream);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(ChatStream).apply(this, arguments));
+	    }
+	
+	    _createClass(ChatStream, [{
+	        key: 'render',
+	        value: function render() {
+	            var chatMessages = this.props.messages.map(function (message, index) {
+	                return _react2.default.createElement(_chatMessage2.default, { message: message, key: index });
+	            });
+	            return _react2.default.createElement(
+	                'div',
+	                { style: styles.chatStream },
+	                chatMessages
+	            );
+	        }
+	    }]);
+	
+	    return ChatStream;
+	}(_react2.default.Component);
+	
+	ChatStream.propTypes = {
+	    messages: _react.PropTypes.array.isRequired
+	};
+	
+	var styles = {
+	    chatStream: {
+	        height: 500,
+	        width: 400,
+	        border: '2px solid #F44336',
+	        margin: '0 auto'
+	    }
+	};
+	
+	exports.default = ChatStream;
+
+/***/ },
 /* 216 */
+/*!************************************!*\
+  !*** ./components/chatMessage.jsx ***!
+  \************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var ChatMessage = function ChatMessage(_ref) {
+	    var message = _ref.message;
+	    return _react2.default.createElement(
+	        'div',
+	        null,
+	        message
+	    );
+	};
+	
+	exports.default = ChatMessage;
+
+/***/ },
+/* 217 */
 /*!**********************************!*\
   !*** ./components/chatInput.jsx ***!
   \**********************************/
@@ -28668,11 +28754,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _voiceTextBtn = __webpack_require__(/*! ./voice/voiceTextBtn.jsx */ 217);
+	var _voiceTextBtn = __webpack_require__(/*! ./voice/voiceTextBtn.jsx */ 218);
 	
 	var _voiceTextBtn2 = _interopRequireDefault(_voiceTextBtn);
 	
-	var _messageParser = __webpack_require__(/*! ../utilities/messageParser.js */ 218);
+	var _messageParser = __webpack_require__(/*! ../utilities/messageParser.js */ 219);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -28814,7 +28900,7 @@
 	exports.default = ChatInput;
 
 /***/ },
-/* 217 */
+/* 218 */
 /*!*******************************************!*\
   !*** ./components/voice/voiceTextBtn.jsx ***!
   \*******************************************/
@@ -28896,7 +28982,7 @@
 	exports.default = VoiceTextBtn;
 
 /***/ },
-/* 218 */
+/* 219 */
 /*!************************************!*\
   !*** ./utilities/messageParser.js ***!
   \************************************/
@@ -28909,7 +28995,7 @@
 	});
 	exports.checkFilterViolation = exports.replaceWithTemplates = undefined;
 	
-	var _localStorage = __webpack_require__(/*! ./localStorage.js */ 219);
+	var _localStorage = __webpack_require__(/*! ./localStorage.js */ 220);
 	
 	var replaceWithTemplates = exports.replaceWithTemplates = function replaceWithTemplates(message) {
 	    var templates = (0, _localStorage.getTemplates)();
@@ -28937,7 +29023,7 @@
 	};
 
 /***/ },
-/* 219 */
+/* 220 */
 /*!***********************************!*\
   !*** ./utilities/localStorage.js ***!
   \***********************************/
@@ -28948,9 +29034,9 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.clearLocalStorage = exports.getFiltersByContact = exports.getFilters = exports.saveNewFilter = exports.getTemplates = exports.saveTemplate = exports.getContacts = exports.saveNewContact = undefined;
+	exports.clearLocalStorage = exports.getAutoMessagesForContact = exports.getAutoMessages = exports.saveAutoMessageForContact = exports.getPastMessagesFromContact = exports.getPastMessages = exports.saveMessageForContact = exports.getFiltersByContact = exports.getFilters = exports.saveNewFilter = exports.getTemplates = exports.saveTemplate = exports.getContacts = exports.saveNewContact = undefined;
 	
-	var _storage = __webpack_require__(/*! ../constants/storage.js */ 220);
+	var _storage = __webpack_require__(/*! ../constants/storage.js */ 221);
 	
 	var saveNewContact = exports.saveNewContact = function saveNewContact(_ref) {
 	    var name = _ref.name;
@@ -29024,12 +29110,68 @@
 	    return contactFilters;
 	};
 	
+	var saveMessageForContact = exports.saveMessageForContact = function saveMessageForContact(contact, message) {
+	    var allMessages = getPastMessages();
+	    var pastMessagesFromContact = allMessages[contact.phoneNumber] || [];
+	    pastMessagesFromContact.push(message);
+	    allMessages[contact.phoneNumber] = pastMessagesFromContact;
+	    window.localStorage.setItem(_storage.PAST_MESSAGES, JSON.stringify(allMessages));
+	};
+	
+	var getPastMessages = exports.getPastMessages = function getPastMessages() {
+	    var messagesFromContact = undefined;
+	    try {
+	        messagesFromContact = JSON.parse(window.localStorage.getItem(_storage.PAST_MESSAGES)) || {};
+	    } catch (e) {
+	        messagesFromContact = {};
+	    }
+	
+	    return messagesFromContact;
+	};
+	
+	var getPastMessagesFromContact = exports.getPastMessagesFromContact = function getPastMessagesFromContact(contact) {
+	    var pastMessages = getPastMessages();
+	    var pastMessagesFromContact = pastMessages[contact.phoneNumber] || [];
+	
+	    return pastMessagesFromContact;
+	};
+	
+	var saveAutoMessageForContact = exports.saveAutoMessageForContact = function saveAutoMessageForContact(_ref2) {
+	    var contact = _ref2.contact;
+	    var message = _ref2.message;
+	
+	    var allMessages = getPastMessages();
+	    var pastMessagesFromContact = allMessages[contact.phoneNumber] || [];
+	    pastMessagesFromContact.push(message);
+	    allMessages[contact.phoneNumber] = pastMessagesFromContact;
+	    window.localStorage.setItem(_storage.PAST_MESSAGES, JSON.stringify(allMessages));
+	};
+	
+	var getAutoMessages = exports.getAutoMessages = function getAutoMessages() {
+	    var messagesFromContact = undefined;
+	    try {
+	        messagesFromContact = JSON.parse(window.localStorage.getItem(_storage.PAST_MESSAGES)) || {};
+	    } catch (e) {
+	        messagesFromContact = {};
+	    }
+	
+	    return messagesFromContact;
+	};
+	
+	var getAutoMessagesForContact = exports.getAutoMessagesForContact = function getAutoMessagesForContact(contact) {
+	    var pastMessages = getPastMessages();
+	    var pastMessagesFromContact = pastMessages[contact.phoneNumber] || [];
+	
+	    return pastMessagesFromContact;
+	};
+	
 	var clearLocalStorage = exports.clearLocalStorage = function clearLocalStorage() {
 	    window.localStorage.setItem(_storage.SAVED_CONTACTS, '[]');
+	    window.localStorage.setItem(_storage.PAST_MESSAGES, '{}');
 	};
 
 /***/ },
-/* 220 */
+/* 221 */
 /*!******************************!*\
   !*** ./constants/storage.js ***!
   \******************************/
@@ -29043,9 +29185,10 @@
 	var SAVED_CONTACTS = exports.SAVED_CONTACTS = 'SAVED_CONTACTS';
 	var SAVED_TEMPLATES = exports.SAVED_TEMPLATES = 'SAVED_TEMPLATES';
 	var SAVED_FILTERS = exports.SAVED_FILTERS = 'SAVED_FILTERS';
+	var PAST_MESSAGES = exports.PAST_MESSAGES = 'PAST_MESSAGES';
 
 /***/ },
-/* 221 */
+/* 222 */
 /*!************************************************!*\
   !*** ./components/contacts/contactManager.jsx ***!
   \************************************************/
@@ -29063,11 +29206,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _contactList = __webpack_require__(/*! ./contactList.jsx */ 222);
+	var _contactList = __webpack_require__(/*! ./contactList.jsx */ 223);
 	
 	var _contactList2 = _interopRequireDefault(_contactList);
 	
-	var _addContactInput = __webpack_require__(/*! ./addContactInput.jsx */ 224);
+	var _addContactInput = __webpack_require__(/*! ./addContactInput.jsx */ 225);
 	
 	var _addContactInput2 = _interopRequireDefault(_addContactInput);
 	
@@ -29141,7 +29284,7 @@
 	exports.default = ContactManager;
 
 /***/ },
-/* 222 */
+/* 223 */
 /*!*********************************************!*\
   !*** ./components/contacts/contactList.jsx ***!
   \*********************************************/
@@ -29157,7 +29300,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _contact = __webpack_require__(/*! ./contact.jsx */ 223);
+	var _contact = __webpack_require__(/*! ./contact.jsx */ 224);
 	
 	var _contact2 = _interopRequireDefault(_contact);
 	
@@ -29190,7 +29333,7 @@
 	exports.default = ContactList;
 
 /***/ },
-/* 223 */
+/* 224 */
 /*!*****************************************!*\
   !*** ./components/contacts/contact.jsx ***!
   \*****************************************/
@@ -29287,7 +29430,7 @@
 	exports.default = Contact;
 
 /***/ },
-/* 224 */
+/* 225 */
 /*!*************************************************!*\
   !*** ./components/contacts/addContactInput.jsx ***!
   \*************************************************/
@@ -29390,7 +29533,7 @@
 	exports.default = AddContactInput;
 
 /***/ },
-/* 225 */
+/* 226 */
 /*!**********************************************!*\
   !*** ./components/currentContactDisplay.jsx ***!
   \**********************************************/
@@ -29430,7 +29573,7 @@
 	exports.default = CurrentContactDisplay;
 
 /***/ },
-/* 226 */
+/* 227 */
 /*!***************************!*\
   !*** ./utilities/ajax.js ***!
   \***************************/
@@ -29491,6 +29634,153 @@
 	    }
 	    return fullUrl;
 	};
+
+/***/ },
+/* 228 */
+/*!*************************************************************!*\
+  !*** ./components/automated-messages/createAutoMessage.jsx ***!
+  \*************************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var CreateAutomatedMessages = function (_Component) {
+	    _inherits(CreateAutomatedMessages, _Component);
+	
+	    function CreateAutomatedMessages() {
+	        _classCallCheck(this, CreateAutomatedMessages);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(CreateAutomatedMessages).apply(this, arguments));
+	    }
+	
+	    _createClass(CreateAutomatedMessages, [{
+	        key: 'shouldComponentUpdate',
+	        value: function shouldComponentUpdate(nextProps, nextState) {
+	            return nextProps.isOpen !== this.props.isOpen;
+	        }
+	    }, {
+	        key: 'handleCreate',
+	        value: function handleCreate(e) {
+	            var contactInput = this.contactInput.value;
+	            var messageInput = this.messageInput.value;
+	
+	            if (contactInput !== '' && messageInput !== '') {
+	                this.props.handleSaveNewAutoMessage({ contact: contactInput, message: messageInput });
+	                this.props.toggleCreateAutoMessageModal();
+	            }
+	        }
+	    }, {
+	        key: 'handleCancel',
+	        value: function handleCancel(e) {
+	            this.props.toggleCreateAutoMessageModal();
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.createBtn.addEventListener('click', this.handleCreate.bind(this));
+	            this.cancelBtn.addEventListener('click', this.handleCancel.bind(this));
+	        }
+	    }, {
+	        key: 'componentWillUpdate',
+	        value: function componentWillUpdate(nextProps) {
+	            if (nextProps.isOpen) {
+	                this.dialog.showModal();
+	            } else {
+	                this.dialog.close();
+	            }
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'dialog',
+	                { className: 'mdl-dialog',
+	                    ref: function ref(c) {
+	                        return _this2.dialog = c;
+	                    } },
+	                _react2.default.createElement(
+	                    'h4',
+	                    { className: 'mdl-dialog__title' },
+	                    'Add New Message Template'
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__content' },
+	                    _react2.default.createElement(
+	                        'label',
+	                        null,
+	                        'When'
+	                    ),
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.contactInput = c;
+	                        } }),
+	                    _react2.default.createElement(
+	                        'label',
+	                        null,
+	                        'Send'
+	                    ),
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.messageInput = c;
+	                        } })
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__actions' },
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button',
+	                            ref: function ref(c) {
+	                                return _this2.createBtn = c;
+	                            } },
+	                        'Create'
+	                    ),
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button close',
+	                            ref: function ref(c) {
+	                                return _this2.cancelBtn = c;
+	                            } },
+	                        'Cancel'
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return CreateAutomatedMessages;
+	}(_react.Component);
+	
+	CreateAutomatedMessages.propTypes = {
+	    isOpen: _react.PropTypes.bool.isRequired,
+	    toggleCreateAutoMessageModal: _react.PropTypes.func.isRequired,
+	    handleSaveNewAutoMessage: _react.PropTypes.func.isRequired
+	};
+	
+	exports.default = CreateAutomatedMessages;
 
 /***/ }
 /******/ ]);

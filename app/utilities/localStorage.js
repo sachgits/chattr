@@ -1,4 +1,8 @@
-import { SAVED_CONTACTS, SAVED_TEMPLATES, SAVED_FILTERS } from '../constants/storage.js';
+import { SAVED_CONTACTS, 
+         SAVED_TEMPLATES, 
+         SAVED_FILTERS,
+         PAST_MESSAGES
+} from '../constants/storage.js';
 
 export const saveNewContact = ({ name, phoneNumber }) => {
     const savedContacts = window.localStorage.getItem(SAVED_CONTACTS) || '[]';
@@ -69,6 +73,59 @@ export const getFiltersByContact = (contact) => {
     return contactFilters;
 };
 
+export const saveMessageForContact = (contact, message) => {
+    const allMessages = getPastMessages();
+    let pastMessagesFromContact = allMessages[contact.phoneNumber] || [];
+    pastMessagesFromContact.push(message);
+    allMessages[contact.phoneNumber] = pastMessagesFromContact;
+    window.localStorage.setItem(PAST_MESSAGES, JSON.stringify(allMessages));
+};
+
+export const getPastMessages = () => {
+    let messagesFromContact;
+    try {
+        messagesFromContact = JSON.parse(window.localStorage.getItem(PAST_MESSAGES)) || {};
+    } catch(e) {
+        messagesFromContact = {};
+    }
+    
+    return messagesFromContact;
+};
+
+export const getPastMessagesFromContact = (contact) => {
+    const pastMessages = getPastMessages();
+    let pastMessagesFromContact = pastMessages[contact.phoneNumber] || [];
+    
+    return pastMessagesFromContact;
+};
+
+export const saveAutoMessageForContact = ({contact, message}) => {
+    const allMessages = getPastMessages();
+    let pastMessagesFromContact = allMessages[contact.phoneNumber] || [];
+    pastMessagesFromContact.push(message);
+    allMessages[contact.phoneNumber] = pastMessagesFromContact;
+    window.localStorage.setItem(PAST_MESSAGES, JSON.stringify(allMessages));
+};
+
+export const getAutoMessages = () => {
+    let messagesFromContact;
+    try {
+        messagesFromContact = JSON.parse(window.localStorage.getItem(PAST_MESSAGES)) || {};
+    } catch(e) {
+        messagesFromContact = {};
+    }
+    
+    return messagesFromContact;
+};
+
+export const getAutoMessagesForContact = (contact) => {
+    const pastMessages = getPastMessages();
+    let pastMessagesFromContact = pastMessages[contact.phoneNumber] || [];
+    
+    return pastMessagesFromContact;
+};
+
 export const clearLocalStorage = () => {
-    window.localStorage.setItem(SAVED_CONTACTS, '[]');      
+    window.localStorage.setItem(SAVED_CONTACTS, '[]');
+    window.localStorage.setItem(PAST_MESSAGES, '{}');
 };
