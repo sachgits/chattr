@@ -1,4 +1,4 @@
-import { SAVED_CONTACTS } from '../constants/storage.js';
+import { SAVED_CONTACTS, SAVED_TEMPLATES, SAVED_FILTERS } from '../constants/storage.js';
 
 export const saveNewContact = ({ name, phoneNumber }) => {
     const savedContacts = window.localStorage.getItem(SAVED_CONTACTS) || '[]';
@@ -23,6 +23,38 @@ export const getContacts = () => {
         savedContactsJSON = [];
     }
     return savedContactsJSON;
+};
+
+export const saveTemplate = (newTemplate) => {
+    const savedTemplates= getTemplates();
+    savedTemplates.push(newTemplate);
+    window.localStorage.setItem(SAVED_TEMPLATES, JSON.stringify(savedTemplates));
+};
+
+export const getTemplates = () => {
+    let savedTemplates;
+    try {
+        savedTemplates = JSON.parse(window.localStorage.getItem(SAVED_TEMPLATES)) || [];
+    } catch(e) {
+        savedTemplates = [];
+    }
+    return savedTemplates;
+};
+
+export const saveNewFilter = (newFilter) => {
+    const savedFilters = getFilters();
+    savedFilters.push(newFilter);
+    window.localStorage.setItem(SAVED_FILTERS, JSON.stringify(savedFilters));
+};
+
+export const getFilters = () => {
+    let savedFilters;
+    try {
+        savedFilters = JSON.parse(window.localStorage.getItem(SAVED_FILTERS)) || [];
+    } catch(e) {
+        savedFilters = [];
+    }
+    return savedFilters;
 };
 
 export const clearLocalStorage = () => {

@@ -1,12 +1,19 @@
 import React from 'react';
 import Header from './header.jsx';
+import CreateTemplate from './templates/createTemplate.jsx';
+import CreateFilter from './filters/createFilter.jsx';
 import ContactInput from './contactInput.jsx';
 import ChatStream from './chatStream.jsx';
 import ChatInput from './chatInput.jsx';
 import ContactManager from './contacts/contactManager.jsx';
 import CurrentContactDisplay from './currentContactDisplay.jsx';
 import { ajax } from '../utilities/ajax.js';
-import { getContacts, saveNewContact, clearLocalStorage } from '../utilities/localStorage.js';
+import { getContacts, 
+         saveNewContact, 
+         saveTemplate, 
+         saveNewFilter,
+         clearLocalStorage 
+} from '../utilities/localStorage.js';
 const testPhone = '+15005550006';
 
 class Chattr extends React.Component {
@@ -19,11 +26,15 @@ class Chattr extends React.Component {
                 name: 'no contact',
                 phoneNumber: '1234'
             },
-            myNumber: testPhone
+            myNumber: testPhone,
+            createTemplateOpen: false,
+            createFilterOpen: false
         };
         
         this.updateCurrentContact = this.updateCurrentContact.bind(this);
         this.sendChatMessage = this.sendChatMessage.bind(this);
+        this.toggleCreateTemplateModal = this.toggleCreateTemplateModal.bind(this);
+        this.toggleCreateFilterModal = this.toggleCreateFilterModal.bind(this);
     }
     
     updateCurrentContact(newContact) {
@@ -34,11 +45,27 @@ class Chattr extends React.Component {
     
     sendChatMessage(body) {
         if(this.state.currentContact !== '') {
-            ajax.post('/sendMessage/', {
+            ajax.post('/sendMessage', {
                 to: this.state.currentContact.phoneNumber,
                 from: this.state.myNumber,
                 msgBody: body
             });
+        }
+    }
+    
+    toggleCreateTemplateModal() {
+        if(this.state.createTemplateOpen) {
+            this.setState({ createTemplateOpen: false });
+        } else {
+            this.setState({ createTemplateOpen: true });    
+        }
+    }
+    
+    toggleCreateFilterModal() {
+        if(this.state.createFilterOpen) {
+            this.setState({ createFilterOpen: false });
+        } else {
+            this.setState({ createFilterOpen: true });    
         }
     }
     
@@ -48,10 +75,19 @@ class Chattr extends React.Component {
         this.setState({ contactList: newContactList });
     }
     
+    handleSaveNewTemplate(newTemplate) {
+        saveTemplate(newTemplate);
+    }
+    
+    handleSaveNewFilter(newFilter) {
+        saveNewFilter(newFilter);
+    }
+    
     render() {
         return (
             <div className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-              <Header />
+              <Header toggleCreateTemplateModal={this.toggleCreateTemplateModal}
+                    toggleCreateFilterModal={this.toggleCreateFilterModal}/>
               <main className="mdl-layout__content">
                 <div className="page-content" style={styles.pageContent}>
                     <CurrentContactDisplay name={this.state.currentContact.name}
@@ -61,6 +97,11 @@ class Chattr extends React.Component {
                                     updateCurrentContact={this.updateCurrentContact}/>
                     <ChatStream />
                     <ChatInput sendChatMessage={this.sendChatMessage} />
+                    <CreateTemplate isOpen={this.state.createTemplateOpen}
+                                    toggleCreateTemplateModal={this.toggleCreateTemplateModal}
+                                    handleSaveNewTemplate={this.handleSaveNewTemplate}/>
+                    <CreateFilter isOpen={this.state.createFilterOpen}
+                                toggleCreateFilterModal={this.toggleCreateFilterModal} />
                 </div>
               </main>
             </div>  

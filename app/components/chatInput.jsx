@@ -1,5 +1,6 @@
 import React from 'react';
 import VoiceTextBtn from './voice/voiceTextBtn.jsx';
+import { parseMessage } from '../utilities/messageParser.js';
 
 class ChatInput extends React.Component {
     constructor(props) {
@@ -32,7 +33,10 @@ class ChatInput extends React.Component {
     
     handleChatInput() {
         const chatBody = this.input.value;
-        this.props.sendChatMessage(chatBody);
+        const parsedInput = parseMessage(chatBody);
+        
+        console.log(parsedInput);
+        this.props.sendChatMessage(parsedInput);
         this.input.value = '';
     }
     

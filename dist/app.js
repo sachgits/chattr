@@ -20161,29 +20161,37 @@
 	
 	var _header2 = _interopRequireDefault(_header);
 	
-	var _contactInput = __webpack_require__(/*! ./contactInput.jsx */ 161);
+	var _createTemplate = __webpack_require__(/*! ./templates/createTemplate.jsx */ 161);
+	
+	var _createTemplate2 = _interopRequireDefault(_createTemplate);
+	
+	var _createFilter = __webpack_require__(/*! ./filters/createFilter.jsx */ 177);
+	
+	var _createFilter2 = _interopRequireDefault(_createFilter);
+	
+	var _contactInput = __webpack_require__(/*! ./contactInput.jsx */ 162);
 	
 	var _contactInput2 = _interopRequireDefault(_contactInput);
 	
-	var _chatStream = __webpack_require__(/*! ./chatStream.jsx */ 163);
+	var _chatStream = __webpack_require__(/*! ./chatStream.jsx */ 164);
 	
 	var _chatStream2 = _interopRequireDefault(_chatStream);
 	
-	var _chatInput = __webpack_require__(/*! ./chatInput.jsx */ 164);
+	var _chatInput = __webpack_require__(/*! ./chatInput.jsx */ 165);
 	
 	var _chatInput2 = _interopRequireDefault(_chatInput);
 	
-	var _contactManager = __webpack_require__(/*! ./contacts/contactManager.jsx */ 166);
+	var _contactManager = __webpack_require__(/*! ./contacts/contactManager.jsx */ 167);
 	
 	var _contactManager2 = _interopRequireDefault(_contactManager);
 	
-	var _currentContactDisplay = __webpack_require__(/*! ./currentContactDisplay.jsx */ 170);
+	var _currentContactDisplay = __webpack_require__(/*! ./currentContactDisplay.jsx */ 171);
 	
 	var _currentContactDisplay2 = _interopRequireDefault(_currentContactDisplay);
 	
-	var _ajax = __webpack_require__(/*! ../utilities/ajax.js */ 171);
+	var _ajax = __webpack_require__(/*! ../utilities/ajax.js */ 172);
 	
-	var _localStorage = __webpack_require__(/*! ../utilities/localStorage.js */ 172);
+	var _localStorage = __webpack_require__(/*! ../utilities/localStorage.js */ 173);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -20209,11 +20217,15 @@
 	                name: 'no contact',
 	                phoneNumber: '1234'
 	            },
-	            myNumber: testPhone
+	            myNumber: testPhone,
+	            createTemplateOpen: false,
+	            createFilterOpen: false
 	        };
 	
 	        _this.updateCurrentContact = _this.updateCurrentContact.bind(_this);
 	        _this.sendChatMessage = _this.sendChatMessage.bind(_this);
+	        _this.toggleCreateTemplateModal = _this.toggleCreateTemplateModal.bind(_this);
+	        _this.toggleCreateFilterModal = _this.toggleCreateFilterModal.bind(_this);
 	        return _this;
 	    }
 	
@@ -20228,11 +20240,29 @@
 	        key: 'sendChatMessage',
 	        value: function sendChatMessage(body) {
 	            if (this.state.currentContact !== '') {
-	                _ajax.ajax.post('/sendMessage/', {
+	                _ajax.ajax.post('/sendMessage', {
 	                    to: this.state.currentContact.phoneNumber,
 	                    from: this.state.myNumber,
 	                    msgBody: body
 	                });
+	            }
+	        }
+	    }, {
+	        key: 'toggleCreateTemplateModal',
+	        value: function toggleCreateTemplateModal() {
+	            if (this.state.createTemplateOpen) {
+	                this.setState({ createTemplateOpen: false });
+	            } else {
+	                this.setState({ createTemplateOpen: true });
+	            }
+	        }
+	    }, {
+	        key: 'toggleCreateFilterModal',
+	        value: function toggleCreateFilterModal() {
+	            if (this.state.createFilterOpen) {
+	                this.setState({ createFilterOpen: false });
+	            } else {
+	                this.setState({ createFilterOpen: true });
 	            }
 	        }
 	    }, {
@@ -20246,12 +20276,23 @@
 	            this.setState({ contactList: newContactList });
 	        }
 	    }, {
+	        key: 'handleSaveNewTemplate',
+	        value: function handleSaveNewTemplate(newTemplate) {
+	            (0, _localStorage.saveTemplate)(newTemplate);
+	        }
+	    }, {
+	        key: 'handleSaveNewFilter',
+	        value: function handleSaveNewFilter(newFilter) {
+	            (0, _localStorage.saveNewFilter)(newFilter);
+	        }
+	    }, {
 	        key: 'render',
 	        value: function render() {
 	            return _react2.default.createElement(
 	                'div',
 	                { className: 'mdl-layout mdl-js-layout mdl-layout--fixed-header' },
-	                _react2.default.createElement(_header2.default, null),
+	                _react2.default.createElement(_header2.default, { toggleCreateTemplateModal: this.toggleCreateTemplateModal,
+	                    toggleCreateFilterModal: this.toggleCreateFilterModal }),
 	                _react2.default.createElement(
 	                    'main',
 	                    { className: 'mdl-layout__content' },
@@ -20264,7 +20305,12 @@
 	                            addContact: this.handleSaveNewContact.bind(this),
 	                            updateCurrentContact: this.updateCurrentContact }),
 	                        _react2.default.createElement(_chatStream2.default, null),
-	                        _react2.default.createElement(_chatInput2.default, { sendChatMessage: this.sendChatMessage })
+	                        _react2.default.createElement(_chatInput2.default, { sendChatMessage: this.sendChatMessage }),
+	                        _react2.default.createElement(_createTemplate2.default, { isOpen: this.state.createTemplateOpen,
+	                            toggleCreateTemplateModal: this.toggleCreateTemplateModal,
+	                            handleSaveNewTemplate: this.handleSaveNewTemplate }),
+	                        _react2.default.createElement(_createFilter2.default, { isOpen: this.state.createFilterOpen,
+	                            toggleCreateFilterModal: this.toggleCreateFilterModal })
 	                    )
 	                )
 	            );
@@ -20290,11 +20336,13 @@
   \*******************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _react = __webpack_require__(/*! react */ 1);
 	
@@ -20302,46 +20350,226 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var Header = function Header() {
-	  return _react2.default.createElement(
-	    "header",
-	    { className: "mdl-layout__header" },
-	    _react2.default.createElement(
-	      "div",
-	      { className: "mdl-layout__header-row" },
-	      _react2.default.createElement(
-	        "span",
-	        { className: "mdl-layout-title" },
-	        "Chattr"
-	      ),
-	      _react2.default.createElement("div", { className: "mdl-layout-spacer" }),
-	      _react2.default.createElement(
-	        "nav",
-	        { className: "mdl-navigation mdl-layout--large-screen-only" },
-	        _react2.default.createElement(
-	          "a",
-	          { className: "mdl-navigation__link", href: "#" },
-	          "Create Template"
-	        ),
-	        _react2.default.createElement(
-	          "a",
-	          { className: "mdl-navigation__link", href: "#" },
-	          "Filters"
-	        ),
-	        _react2.default.createElement(
-	          "a",
-	          { className: "mdl-navigation__link", href: "#" },
-	          "Automated Messages"
-	        )
-	      )
-	    )
-	  );
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Header = function (_Component) {
+	    _inherits(Header, _Component);
+	
+	    function Header() {
+	        _classCallCheck(this, Header);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(Header).apply(this, arguments));
+	    }
+	
+	    _createClass(Header, [{
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.createTemplate.addEventListener('click', this.props.toggleCreateTemplateModal);
+	            this.createFilter.addEventListener('click', this.props.toggleCreateFilterModal);
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'header',
+	                { className: 'mdl-layout__header' },
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-layout__header-row' },
+	                    _react2.default.createElement(
+	                        'span',
+	                        { className: 'mdl-layout-title' },
+	                        'Chattr'
+	                    ),
+	                    _react2.default.createElement('div', { className: 'mdl-layout-spacer' }),
+	                    _react2.default.createElement(
+	                        'nav',
+	                        { className: 'mdl-navigation mdl-layout--large-screen-only' },
+	                        _react2.default.createElement(
+	                            'a',
+	                            { className: 'mdl-navigation__link',
+	                                ref: function ref(c) {
+	                                    return _this2.createTemplate = c;
+	                                },
+	                                href: '#' },
+	                            'Create Template'
+	                        ),
+	                        _react2.default.createElement(
+	                            'a',
+	                            { className: 'mdl-navigation__link',
+	                                href: '#',
+	                                ref: function ref(c) {
+	                                    return _this2.createFilter = c;
+	                                } },
+	                            'Filters'
+	                        ),
+	                        _react2.default.createElement(
+	                            'a',
+	                            { className: 'mdl-navigation__link', href: '#' },
+	                            'Automated Messages'
+	                        )
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return Header;
+	}(_react.Component);
+	
+	Header.propTypes = {
+	    toggleCreateTemplateModal: _react.PropTypes.func.isRequired,
+	    toggleCreateFilterModal: _react.PropTypes.func.isRequired
 	};
 	
 	exports.default = Header;
 
 /***/ },
 /* 161 */
+/*!*************************************************!*\
+  !*** ./components/templates/createTemplate.jsx ***!
+  \*************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var CreateTemplate = function (_Component) {
+	    _inherits(CreateTemplate, _Component);
+	
+	    function CreateTemplate() {
+	        _classCallCheck(this, CreateTemplate);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(CreateTemplate).apply(this, arguments));
+	    }
+	
+	    _createClass(CreateTemplate, [{
+	        key: 'shouldComponentUpdate',
+	        value: function shouldComponentUpdate(nextProps, nextState) {
+	            return nextProps.isOpen !== this.props.isOpen;
+	        }
+	    }, {
+	        key: 'handleCreate',
+	        value: function handleCreate(e) {
+	            var keyInput = this.templateKeyInput.value;
+	            var templateInput = this.templateInput.value;
+	
+	            if (keyInput !== '' && templateInput !== '') {
+	                keyInput = ":" + keyInput;
+	                this.props.handleSaveNewTemplate({ key: keyInput, value: templateInput });
+	                this.props.toggleCreateTemplateModal();
+	            }
+	        }
+	    }, {
+	        key: 'handleCancel',
+	        value: function handleCancel(e) {
+	            this.props.toggleCreateTemplateModal();
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.createBtn.addEventListener('click', this.handleCreate.bind(this));
+	            this.cancelBtn.addEventListener('click', this.handleCancel.bind(this));
+	        }
+	    }, {
+	        key: 'componentWillUpdate',
+	        value: function componentWillUpdate(nextProps) {
+	            if (nextProps.isOpen) {
+	                this.dialog.showModal();
+	            } else {
+	                this.dialog.close();
+	            }
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'dialog',
+	                { className: 'mdl-dialog',
+	                    ref: function ref(c) {
+	                        return _this2.dialog = c;
+	                    } },
+	                _react2.default.createElement(
+	                    'h4',
+	                    { className: 'mdl-dialog__title' },
+	                    'Add New Message Template'
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__content' },
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.templateKeyInput = c;
+	                        } }),
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.templateInput = c;
+	                        } })
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__actions' },
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button',
+	                            ref: function ref(c) {
+	                                return _this2.createBtn = c;
+	                            } },
+	                        'Create'
+	                    ),
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button close',
+	                            ref: function ref(c) {
+	                                return _this2.cancelBtn = c;
+	                            } },
+	                        'Cancel'
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return CreateTemplate;
+	}(_react.Component);
+	
+	CreateTemplate.propTypes = {
+	    isOpen: _react.PropTypes.bool.isRequired,
+	    toggleCreateTemplateModal: _react.PropTypes.func.isRequired,
+	    handleSaveNewTemplate: _react.PropTypes.func.isRequired
+	};
+	
+	exports.default = CreateTemplate;
+
+/***/ },
+/* 162 */
 /*!*************************************!*\
   !*** ./components/contactInput.jsx ***!
   \*************************************/
@@ -20359,7 +20587,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _keyCodes = __webpack_require__(/*! ../constants/keyCodes.js */ 162);
+	var _keyCodes = __webpack_require__(/*! ../constants/keyCodes.js */ 163);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -20428,7 +20656,7 @@
 	exports.default = ContactInput;
 
 /***/ },
-/* 162 */
+/* 163 */
 /*!*******************************!*\
   !*** ./constants/keyCodes.js ***!
   \*******************************/
@@ -20442,7 +20670,7 @@
 	var KEY_ENTER = exports.KEY_ENTER = 13;
 
 /***/ },
-/* 163 */
+/* 164 */
 /*!***********************************!*\
   !*** ./components/chatStream.jsx ***!
   \***********************************/
@@ -20499,7 +20727,7 @@
 	exports.default = ChatStream;
 
 /***/ },
-/* 164 */
+/* 165 */
 /*!**********************************!*\
   !*** ./components/chatInput.jsx ***!
   \**********************************/
@@ -20517,9 +20745,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _voiceTextBtn = __webpack_require__(/*! ./voice/voiceTextBtn.jsx */ 165);
+	var _voiceTextBtn = __webpack_require__(/*! ./voice/voiceTextBtn.jsx */ 166);
 	
 	var _voiceTextBtn2 = _interopRequireDefault(_voiceTextBtn);
+	
+	var _messageParser = __webpack_require__(/*! ../utilities/messageParser.js */ 175);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -20570,7 +20800,10 @@
 	        key: 'handleChatInput',
 	        value: function handleChatInput() {
 	            var chatBody = this.input.value;
-	            this.props.sendChatMessage(chatBody);
+	            var parsedInput = (0, _messageParser.parseMessage)(chatBody);
+	
+	            console.log(parsedInput);
+	            this.props.sendChatMessage(parsedInput);
 	            this.input.value = '';
 	        }
 	    }, {
@@ -20651,7 +20884,7 @@
 	exports.default = ChatInput;
 
 /***/ },
-/* 165 */
+/* 166 */
 /*!*******************************************!*\
   !*** ./components/voice/voiceTextBtn.jsx ***!
   \*******************************************/
@@ -20733,7 +20966,7 @@
 	exports.default = VoiceTextBtn;
 
 /***/ },
-/* 166 */
+/* 167 */
 /*!************************************************!*\
   !*** ./components/contacts/contactManager.jsx ***!
   \************************************************/
@@ -20751,11 +20984,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _contactList = __webpack_require__(/*! ./contactList.jsx */ 167);
+	var _contactList = __webpack_require__(/*! ./contactList.jsx */ 168);
 	
 	var _contactList2 = _interopRequireDefault(_contactList);
 	
-	var _addContactInput = __webpack_require__(/*! ./addContactInput.jsx */ 169);
+	var _addContactInput = __webpack_require__(/*! ./addContactInput.jsx */ 170);
 	
 	var _addContactInput2 = _interopRequireDefault(_addContactInput);
 	
@@ -20829,7 +21062,7 @@
 	exports.default = ContactManager;
 
 /***/ },
-/* 167 */
+/* 168 */
 /*!*********************************************!*\
   !*** ./components/contacts/contactList.jsx ***!
   \*********************************************/
@@ -20845,7 +21078,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _contact = __webpack_require__(/*! ./contact.jsx */ 168);
+	var _contact = __webpack_require__(/*! ./contact.jsx */ 169);
 	
 	var _contact2 = _interopRequireDefault(_contact);
 	
@@ -20878,7 +21111,7 @@
 	exports.default = ContactList;
 
 /***/ },
-/* 168 */
+/* 169 */
 /*!*****************************************!*\
   !*** ./components/contacts/contact.jsx ***!
   \*****************************************/
@@ -20943,7 +21176,7 @@
 	                { ref: function ref(c) {
 	                        return _this2.contact = c;
 	                    },
-	                    stlye: styles.contactDisplay },
+	                    style: styles.contactDisplay },
 	                _react2.default.createElement(
 	                    'h6',
 	                    { style: styles.noMargin },
@@ -20975,7 +21208,7 @@
 	exports.default = Contact;
 
 /***/ },
-/* 169 */
+/* 170 */
 /*!*************************************************!*\
   !*** ./components/contacts/addContactInput.jsx ***!
   \*************************************************/
@@ -21078,7 +21311,7 @@
 	exports.default = AddContactInput;
 
 /***/ },
-/* 170 */
+/* 171 */
 /*!**********************************************!*\
   !*** ./components/currentContactDisplay.jsx ***!
   \**********************************************/
@@ -21118,7 +21351,7 @@
 	exports.default = CurrentContactDisplay;
 
 /***/ },
-/* 171 */
+/* 172 */
 /*!***************************!*\
   !*** ./utilities/ajax.js ***!
   \***************************/
@@ -21181,7 +21414,7 @@
 	};
 
 /***/ },
-/* 172 */
+/* 173 */
 /*!***********************************!*\
   !*** ./utilities/localStorage.js ***!
   \***********************************/
@@ -21192,9 +21425,9 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.clearLocalStorage = exports.getContacts = exports.saveNewContact = undefined;
+	exports.clearLocalStorage = exports.getFilters = exports.saveNewFilter = exports.getTemplates = exports.saveTemplate = exports.getContacts = exports.saveNewContact = undefined;
 	
-	var _storage = __webpack_require__(/*! ../constants/storage.js */ 173);
+	var _storage = __webpack_require__(/*! ../constants/storage.js */ 174);
 	
 	var saveNewContact = exports.saveNewContact = function saveNewContact(_ref) {
 	    var name = _ref.name;
@@ -21224,12 +21457,44 @@
 	    return savedContactsJSON;
 	};
 	
+	var saveTemplate = exports.saveTemplate = function saveTemplate(newTemplate) {
+	    var savedTemplates = getTemplates();
+	    savedTemplates.push(newTemplate);
+	    window.localStorage.setItem(_storage.SAVED_TEMPLATES, JSON.stringify(savedTemplates));
+	};
+	
+	var getTemplates = exports.getTemplates = function getTemplates() {
+	    var savedTemplates = undefined;
+	    try {
+	        savedTemplates = JSON.parse(window.localStorage.getItem(_storage.SAVED_TEMPLATES)) || [];
+	    } catch (e) {
+	        savedTemplates = [];
+	    }
+	    return savedTemplates;
+	};
+	
+	var saveNewFilter = exports.saveNewFilter = function saveNewFilter(newFilter) {
+	    var savedFilters = getFilters();
+	    savedFilters.push(newFilter);
+	    window.localStorage.setItem(_storage.SAVED_FILTERS, JSON.stringify(savedFilters));
+	};
+	
+	var getFilters = exports.getFilters = function getFilters() {
+	    var savedFilters = undefined;
+	    try {
+	        savedFilters = JSON.parse(window.localStorage.getItem(_storage.SAVED_FILTERS)) || [];
+	    } catch (e) {
+	        savedFilters = [];
+	    }
+	    return savedFilters;
+	};
+	
 	var clearLocalStorage = exports.clearLocalStorage = function clearLocalStorage() {
 	    window.localStorage.setItem(_storage.SAVED_CONTACTS, '[]');
 	};
 
 /***/ },
-/* 173 */
+/* 174 */
 /*!******************************!*\
   !*** ./constants/storage.js ***!
   \******************************/
@@ -21241,7 +21506,175 @@
 	  value: true
 	});
 	var SAVED_CONTACTS = exports.SAVED_CONTACTS = 'SAVED_CONTACTS';
+	var SAVED_TEMPLATES = exports.SAVED_TEMPLATES = 'SAVED_TEMPLATES';
+	var SAVED_FILTERS = exports.SAVED_FILTERS = 'SAVED_FILTERS';
+
+/***/ },
+/* 175 */
+/*!************************************!*\
+  !*** ./utilities/messageParser.js ***!
+  \************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.parseMessage = undefined;
+	
+	var _localStorage = __webpack_require__(/*! ./localStorage.js */ 173);
+	
+	var parseMessage = exports.parseMessage = function parseMessage(message) {
+	    var templates = (0, _localStorage.getTemplates)();
+	    var regex = undefined;
+	
+	    for (var i = 0; i < templates.length; i++) {
+	        regex = new RegExp(templates[i].key, "g");
+	        message = message.replace(regex, templates[i].value);
+	    }
+	
+	    return message;
+	};
+
+/***/ },
+/* 176 */,
+/* 177 */
+/*!*********************************************!*\
+  !*** ./components/filters/createFilter.jsx ***!
+  \*********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var CreateFilter = function (_Component) {
+	    _inherits(CreateFilter, _Component);
+	
+	    function CreateFilter() {
+	        _classCallCheck(this, CreateFilter);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(CreateFilter).apply(this, arguments));
+	    }
+	
+	    _createClass(CreateFilter, [{
+	        key: 'shouldComponentUpdate',
+	        value: function shouldComponentUpdate(nextProps, nextState) {
+	            return nextProps.isOpen !== this.props.isOpen;
+	        }
+	    }, {
+	        key: 'handleCreate',
+	        value: function handleCreate(e) {
+	            var filterContactInput = this.filterContactInput.value;
+	            var filterWordsInput = this.filterWordsInput.value;
+	
+	            if (keyInput !== '' && templateInput !== '') {
+	                var filters = filterWordsInput.split(',');
+	                console.log(filters);
+	            }
+	        }
+	    }, {
+	        key: 'handleCancel',
+	        value: function handleCancel(e) {
+	            this.props.toggleCreateFilterModal();
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.createBtn.addEventListener('click', this.handleCreate.bind(this));
+	            this.cancelBtn.addEventListener('click', this.handleCancel.bind(this));
+	        }
+	    }, {
+	        key: 'componentWillUpdate',
+	        value: function componentWillUpdate(nextProps) {
+	            if (nextProps.isOpen) {
+	                this.dialog.showModal();
+	            } else {
+	                this.dialog.close();
+	            }
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+	
+	            return _react2.default.createElement(
+	                'dialog',
+	                { className: 'mdl-dialog',
+	                    ref: function ref(c) {
+	                        return _this2.dialog = c;
+	                    } },
+	                _react2.default.createElement(
+	                    'h4',
+	                    { className: 'mdl-dialog__title' },
+	                    'Create New Filter'
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__content' },
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.filterContactInput = c;
+	                        } }),
+	                    _react2.default.createElement('input', { type: 'text',
+	                        ref: function ref(c) {
+	                            return _this2.filterWordsInput = c;
+	                        } })
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'mdl-dialog__actions' },
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button',
+	                            ref: function ref(c) {
+	                                return _this2.createBtn = c;
+	                            } },
+	                        'Create'
+	                    ),
+	                    _react2.default.createElement(
+	                        'button',
+	                        { type: 'button',
+	                            className: 'mdl-button close',
+	                            ref: function ref(c) {
+	                                return _this2.cancelBtn = c;
+	                            } },
+	                        'Cancel'
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return CreateFilter;
+	}(_react.Component);
+	
+	CreateFilter.propTypes = {
+	    isOpen: _react.PropTypes.bool.isRequired,
+	    toggleCreateFilterModal: _react.PropTypes.func.isRequired
+	};
+	
+	exports.default = CreateFilter;
 
 /***/ }
 /******/ ]);
+//# sourceMappingURL=app.js.map
 //# sourceMappingURL=app.js.map

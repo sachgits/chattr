@@ -22,7 +22,7 @@ class Contact extends Component {
         
         return (
             <div ref={c => this.contact = c}
-                stlye={styles.contactDisplay}>
+                style={styles.contactDisplay}>
                 <h6 style={styles.noMargin}>{name}</h6> <p>{phoneNumber}</p>
             </div>        
         );
