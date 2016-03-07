@@ -1,6 +1,6 @@
 import React from 'react';
 import VoiceTextBtn from './voice/voiceTextBtn.jsx';
-import { parseMessage } from '../utilities/messageParser.js';
+import { replaceWithTemplates, checkFilterViolation  } from '../utilities/messageParser.js';
 
 class ChatInput extends React.Component {
     constructor(props) {
@@ -33,11 +33,20 @@ class ChatInput extends React.Component {
     
     handleChatInput() {
         const chatBody = this.input.value;
-        const parsedInput = parseMessage(chatBody);
+        const parsedInput = replaceWithTemplates(chatBody);
+        const filterViolation = checkFilterViolation(chatBody, this.props.currentContact);
         
-        console.log(parsedInput);
-        this.props.sendChatMessage(parsedInput);
-        this.input.value = '';
+        console.log(this.props.currentContact, chatBody);
+        
+        if(filterViolation) {
+            if(window.confirm("This message violates message filters create for this contact, are you sure you want to send it?")) {
+                // this.props.sendChatMessage(parsedInput);
+                // this.input.value = '';     
+            } 
+        } else {
+            // this.props.sendChatMessage(parsedInput);
+            // this.input.value = '';
+        }
     }
     
     handleSpeechInput(event) {

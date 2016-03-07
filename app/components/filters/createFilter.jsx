@@ -10,9 +10,10 @@ class CreateFilter extends Component {
         let filterContactInput = this.filterContactInput.value;
         const filterWordsInput = this.filterWordsInput.value;
         
-        if(keyInput !== '' && templateInput !== '') {
+        if(filterContactInput !== '' && filterWordsInput !== '') {
             const filters = filterWordsInput.split(',');
-            console.log(filters);
+            this.props.handleSaveNewFilter({ contact: filterContactInput, filterWords: filters });
+            this.props.toggleCreateFilterModal();
         }
     }
     
@@ -59,7 +60,8 @@ class CreateFilter extends Component {
 
 CreateFilter.propTypes = {
     isOpen: PropTypes.bool.isRequired,
-    toggleCreateFilterModal: PropTypes.func.isRequired
+    toggleCreateFilterModal: PropTypes.func.isRequired,
+    handleSaveNewFilter: PropTypes.func.isRequired
 };
 
 export default CreateFilter;

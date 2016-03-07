@@ -96,12 +96,14 @@ class Chattr extends React.Component {
                                     addContact={this.handleSaveNewContact.bind(this)}
                                     updateCurrentContact={this.updateCurrentContact}/>
                     <ChatStream />
-                    <ChatInput sendChatMessage={this.sendChatMessage} />
+                    <ChatInput sendChatMessage={this.sendChatMessage}
+                                currentContact={this.state.currentContact}/>
                     <CreateTemplate isOpen={this.state.createTemplateOpen}
                                     toggleCreateTemplateModal={this.toggleCreateTemplateModal}
                                     handleSaveNewTemplate={this.handleSaveNewTemplate}/>
                     <CreateFilter isOpen={this.state.createFilterOpen}
-                                toggleCreateFilterModal={this.toggleCreateFilterModal} />
+                                toggleCreateFilterModal={this.toggleCreateFilterModal}
+                                handleSaveNewFilter={this.handleSaveNewFilter}/>
                 </div>
               </main>
             </div>  
